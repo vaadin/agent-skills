@@ -59,6 +59,8 @@ binder.forField(emailField)
 
 The chain order matters: `forField()` → `asRequired()` → `withValidator()` → `withConverter()` → `withValidator()` → `bind()`. Validators and converters execute in the order they appear.
 
+**Always prefer binding fields using getter/setter method references. Don't use string property names unless the FDO is a Java record.**
+
 ### Shorthand binding
 
 ```java
@@ -149,13 +151,15 @@ public class PositiveIntegerValidator implements Validator<Integer> {
 
 ### 3. Default validators (component built-in)
 
-Some components have built-in validation (e.g., DatePicker min/max). These work alongside Binder validators. Disable them if needed:
+Some components have built-in validation (e.g., DatePicker min/max, EmailField). These work alongside Binder validators. Disable them if needed:
 
 ```java
 binder.forField(datePicker)
     .withDefaultValidator(false)
     .bind(Bean::getDate, Bean::setDate);
 ```
+
+Default validators take precedence over binding-level validators. To customize the error messages of default validators, use the field's `setI18n()` method.
 
 ### 4. Binder-level validators (cross-field)
 
@@ -196,6 +200,20 @@ binder.setStatusLabel(errorDisplay);
 
 Use `FormLayout` for automatic responsive column adjustment:
 
+Auto-responsive mode:
+
+```java
+FormLayout form = new FormLayout();
+form.setAutoResponsive(true);
+form.addFormRow(firstNameField, lastNameField);
+FormLayout.FormRow emailRow = new FormLayout.FormRow();
+emailRow.add(emailField, 2); // colspan 2
+form.add(emailRow);
+form.addFormRow(passwordField, confirmPasswordField);
+```
+
+Manually set responsive steps:
+
 ```java
 FormLayout form = new FormLayout();
 form.add(nameField, emailField, phoneField);
@@ -206,6 +224,58 @@ form.setResponsiveSteps(
 );
 ```
 
+## Separating the Form into Its Own Class
+
+Encapsulate the form in a dedicated class that extends `Composite<FormLayout>`. This keeps the Binder, fields, and form data object together, and exposes a small `setFormDataObject` / `getFormDataObject` API to the surrounding view. The constructor builds the fields, adds them to `getContent()`, and wires up the Binder.
+
+**Buffered mode** — the form owns the form data object and writes to it on demand:
+
+```java
+public class ProposalForm extends Composite<FormLayout> {
+    private final Binder<Proposal> binder;
+    private Proposal formDataObject;
+
+    public void setFormDataObject(@Nullable Proposal formDataObject) {
+        this.formDataObject = formDataObject;
+        if (formDataObject != null) {
+            binder.readBean(formDataObject);
+        } else {
+            binder.refreshFields();
+        }
+    }
+
+    public Optional<Proposal> getFormDataObject() {
+        if (formDataObject == null) {
+            formDataObject = new Proposal();
+        }
+        return binder.writeBeanIfValid(formDataObject)
+            ? Optional.of(formDataObject)
+            : Optional.empty();
+    }
+}
+```
+
+**Write-through mode** — the bean is set on the Binder and edits flow through immediately; the getter only validates before handing it back:
+
+```java
+public class ProposalForm extends Composite<FormLayout> {
+    private final Binder<Proposal> binder;
+
+    public void setFormDataObject(@Nullable Proposal formDataObject) {
+        binder.setBean(formDataObject);
+    }
+
+    public Optional<Proposal> getFormDataObject() {
+        if (binder.getBean() == null) {
+            throw new IllegalStateException("No form data object");
+        }
+        return binder.validate().isOk()
+            ? Optional.of(binder.getBean())
+            : Optional.empty();
+    }
+}
+```
+
 ## Best Practices
 
 1. **Use buffered mode for most forms** — it gives you control over when data is written and lets you implement Cancel without manual state tracking.
@@ -214,6 +284,7 @@ form.setResponsiveSteps(
 4. **Use converters for type safety** — domain primitives with converters catch invalid data at the type system level.
 5. **Set `asRequired()` on mandatory fields** — it provides both the visual indicator and the empty-value check in one call.
 6. **Show binder-level errors prominently** — they don't attach to a specific field, so users need a clear error display area.
+7. **Encapsulate the form in its own `Composite<FormLayout>` class** — keep the Binder, fields, and form data object together, and expose a small `setFormDataObject` / `getFormDataObject` API to the surrounding view.
 
 ## Detailed Reference
 
