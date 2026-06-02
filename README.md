@@ -4,11 +4,20 @@ Agent skills for helping coding agents build, style, test, and secure Vaadin 25 
 
 These skills are designed to be installed with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
-This repository is also a Codex plugin source. It includes:
+This repository can be used in three ways:
+
+- as a source for `npx skills add`
+- as a Codex plugin source
+- as a Claude plugin source
+
+It includes:
 
 - `.codex-plugin/plugin.json` for Codex plugin metadata
+- `.claude-plugin/plugin.json` for Claude plugin metadata
 - `.mcp.json` for the Vaadin MCP server configuration
 - `skills/` for the shared skill definitions
+
+For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/claude-plugin) repository is kept as a marketplace that points back to this source-of-truth repository.
 
 ## Installation
 
