@@ -91,3 +91,4 @@ When adding a new skill:
 3. Write a specific `description` that tells agents when the skill should be used.
 4. Put longer examples and supporting documents in `skills/<skill-name>/references/`.
 5. Update the skill list in this README.
+6. Update the skill list in `.claude-plugin/plugin.json`.
