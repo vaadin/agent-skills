@@ -1,0 +1,43 @@
+{
+  "name": "vaadin-skills",
+  "version": "0.1.0",
+  "description": "Skills and tools for building high-quality Vaadin 25 applications with Java, Flow, React, Hilla, Spring Boot, and the Vaadin MCP server.",
+  "author": {
+    "name": "Vaadin",
+    "url": "https://vaadin.com"
+  },
+  "homepage": "https://github.com/vaadin/agent-skills",
+  "repository": "https://github.com/vaadin/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "vaadin",
+    "java",
+    "flow",
+    "hilla",
+    "react",
+    "spring-boot",
+    "web",
+    "ui"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Vaadin Skills",
+    "shortDescription": "Build, style, test, and secure Vaadin 25 applications.",
+    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Flow views, React/Hilla client-side views, layouts, theming, forms, data providers, security, testing, third-party components, and reactive state with Signals. It also configures the Vaadin MCP server for current documentation and API lookup.",
+    "developerName": "Vaadin",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Skills",
+      "MCP",
+      "Code"
+    ],
+    "websiteURL": "https://vaadin.com",
+    "defaultPrompt": [
+      "Build a Vaadin 25 view with navigation.",
+      "Style this Vaadin UI with Aura or Lumo.",
+      "Write browserless tests for this Vaadin view."
+    ],
+    "brandColor": "#00B4F0"
+  }
+}

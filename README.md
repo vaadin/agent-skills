@@ -4,6 +4,12 @@ Agent skills for helping coding agents build, style, test, and secure Vaadin 25 
 
 These skills are designed to be installed with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
+This repository is also a Codex plugin source. It includes:
+
+- `.codex-plugin/plugin.json` for Codex plugin metadata
+- `.mcp.json` for the Vaadin MCP server configuration
+- `skills/` for the shared skill definitions
+
 ## Installation
 
 Install all skills from this repository:
@@ -55,6 +61,11 @@ npx skills add https://github.com/vaadin/agent-skills --skill views-and-navigati
 Each skill lives in its own directory under `skills/`:
 
 ```text
+.codex-plugin/
+  plugin.json
+.claude-plugin/
+  plugin.json
+.mcp.json
 skills/
   frontend-design/
     SKILL.md
