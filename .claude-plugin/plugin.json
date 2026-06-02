@@ -15,6 +15,6 @@
         "./skills/third-party-components",
         "./skills/ui-unit-testing",
         "./skills/vaadin-layouts",
-        ",/skills/views-and-navigation"
+        "./skills/views-and-navigation"
     ]
 }
