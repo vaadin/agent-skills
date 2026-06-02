@@ -1,0 +1,20 @@
+{
+    "name": "vaadin-skills",
+    "skills": [
+        "./skills/aura-theme",
+        "./skills/client-side-views",
+        "./skills/data-providers",
+        "./skills/forms-and-validation",
+        "./skills/frontend-design",
+        "./skills/responsive-layouts",
+        "./skills/reusable-components",
+        "./skills/security",
+        "./skills/signals",
+        "./skills/testbench-testing",
+        "./skills/theming",
+        "./skills/third-party-components",
+        "./skills/ui-unit-testing",
+        "./skills/vaadin-layouts",
+        ",/skills/views-and-navigation"
+    ]
+}
