@@ -1,7 +1,7 @@
 ---
 name: testbench-testing
 description: >
-  Guide Claude on writing end-to-end browser tests with Vaadin TestBench in Vaadin 25.
+  Guide the agent on writing end-to-end browser tests with Vaadin TestBench in Vaadin 25.
   This skill should be used when the user asks to "write an end-to-end test",
   "write a browser test", "use TestBench", "create a page object",
   "test in a real browser", "integration test a Vaadin app",

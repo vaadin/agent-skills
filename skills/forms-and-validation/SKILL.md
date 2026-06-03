@@ -1,7 +1,7 @@
 ---
 name: forms-and-validation
 description: >
-  Guide Claude on building forms with Binder and robust validation in Vaadin 25 Flow.
+  Guide the agent on building forms with Binder and robust validation in Vaadin 25 Flow.
   This skill should be used when the user asks to "create a form", "bind fields",
   "validate input", "use Binder", "use BeanValidationBinder", "add validation",
   "convert field values", "handle form submission", "cross-field validation",

@@ -1,7 +1,7 @@
 ---
 name: data-providers
 description: >
-  Guide Claude on using Vaadin 25 data providers efficiently for Grid, ComboBox,
+  Guide the agent on using Vaadin 25 data providers efficiently for Grid, ComboBox,
   and other listing components. This skill should be used when the user asks to
   "load data into a grid", "use a data provider", "lazy load data",
   "paginate grid data", "filter a grid", "sort a grid", "use setItems",
