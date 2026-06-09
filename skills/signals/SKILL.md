@@ -11,12 +11,14 @@ description: >
   "bindVisible", "bindChildren", or needs help with reactive UI updates,
   signal transactions, signal effects, signal bindings, or
   thread-safe state management in Vaadin Flow.
-version: 0.2.0
+version: 0.3.0
 ---
 
 # Reactive State Management with Signals in Vaadin 25
 
 Use the Vaadin MCP tools (`search_vaadin_docs`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25.1"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 ## What Signals Are
 

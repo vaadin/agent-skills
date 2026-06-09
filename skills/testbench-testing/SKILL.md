@@ -7,12 +7,14 @@ description: >
   "test in a real browser", "integration test a Vaadin app",
   "visual regression test", "cross-browser test", or needs help with
   TestBench Element API, ElementQuery, page objects, or TestBenchTestCase.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # End-to-End Browser Testing with Vaadin TestBench
 
 Use the Vaadin MCP tools (`search_vaadin_docs`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+The docs MCP doesn't cover the TestBench API itself. For exact Element/`ElementQuery` signatures or source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) against the `com.vaadin` TestBench artifacts (e.g. `vaadin-testbench-core`) instead of unpacking jars from `~/.m2`.
 
 **Note:** TestBench requires a commercial Vaadin subscription.
 

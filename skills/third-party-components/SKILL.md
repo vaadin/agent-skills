@@ -9,12 +9,14 @@ description: >
   "wrap a React component", "ReactAdapterComponent", "ReactAdapterElement",
   "npm component", "PropertyDescriptor", "callJsFunction",
   "synchronize properties", or "listen to DOM events".
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Integrating Third-Party Components in Vaadin 25
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 ## Choosing Your Integration Path
 

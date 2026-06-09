@@ -6,12 +6,14 @@ description: >
   "change colors", "enable dark mode", "customize design tokens", "use theme variants",
   "use utility classes", "change the color scheme", or needs help with theme-specific CSS
   custom properties, component theme variants, or building a custom theme in Vaadin 25.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Vaadin 25 Theming: Aura & Lumo
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_styling`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 Vaadin 25 ships two fully supported themes — **Aura** and **Lumo**. They differ in visual style, customization approach, and available features. This skill covers both.
 

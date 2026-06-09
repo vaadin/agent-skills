@@ -11,12 +11,14 @@ description: >
   Also trigger when the user needs help choosing between route parameters and query
   parameters, building a MainLayout with a drawer and navigation menu, or structuring
   nested router layouts.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Views & Navigation
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_java_api`, `get_component_styling`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 ## When to Use This Skill vs. Others
 

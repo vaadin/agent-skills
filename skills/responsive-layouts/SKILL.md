@@ -6,12 +6,14 @@ description: >
   "support mobile", "adapt to screen size", "use breakpoints", "use media queries",
   "use container queries", "responsive design", "mobile first", or needs help
   making a Vaadin Flow view work well on both desktop and mobile devices.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Building Responsive Layouts in Vaadin 25
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 ## Design Philosophy
 

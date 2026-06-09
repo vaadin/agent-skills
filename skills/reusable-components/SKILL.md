@@ -7,12 +7,14 @@ description: >
   "simplify a large view", "create a reusable component", "use Composite",
   "compose components", or when a view is growing beyond ~200 lines,
   has multiple logical sections, or contains repeated UI patterns.
-version: 0.2.0
+version: 0.3.0
 ---
 
 # Structuring Views into Components in Vaadin 25
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 ## When to Extract Components
 

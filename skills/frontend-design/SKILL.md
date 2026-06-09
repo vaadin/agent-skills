@@ -7,12 +7,14 @@ description: >
   "add polish", "design a UI", "create a beautiful interface", or when building a new view
   where visual quality matters. Also trigger when the user wants to add animations, visual
   effects, or build polished component compositions in a Vaadin application.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Creating Distinctive Vaadin Interfaces
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_styling`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
 
 This skill guides creation of distinctive, polished Vaadin interfaces that go beyond default theme styling. The goal is production-grade code with genuine attention to aesthetic detail — not generic defaults.
 

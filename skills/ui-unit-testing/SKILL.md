@@ -8,12 +8,14 @@ description: >
   "browser-free testing", "browserless testing", or needs help with the
   Vaadin browserless testing framework, component testers, navigation in tests,
   or mocking Spring beans in Vaadin view tests.
-version: 0.2.0
+version: 0.4.0
 ---
 
 # Browserless Testing in Vaadin 25
 
 Use the Vaadin MCP tools (`search_vaadin_docs`, `get_component_java_api`) to look up the latest documentation whenever uncertain about a specific API detail. Always set `vaadin_version` to `"25"` and `ui_language` to `"java"`.
+
+The docs MCP doesn't cover the testing framework itself. For exact tester / `ComponentQuery` / `@ViewPackages` signatures or source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) against the `com.vaadin:browserless-test-shared`, `browserless-test-junit6`, and `browserless-test-spring` artifacts instead of unpacking jars from `~/.m2`.
 
 ## What Browserless Testing Is
 
