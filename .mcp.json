@@ -3,6 +3,10 @@
     "vaadin": {
       "type": "http",
       "url": "https://mcp.vaadin.com/docs"
+    },
+    "javadoc": {
+      "type": "http",
+      "url": "https://www.javadocs.dev/mcp"
     }
   }
 }
