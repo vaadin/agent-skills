@@ -1,7 +1,7 @@
 ---
 name: views-and-navigation
 description: >
-  Guide Claude on creating Vaadin 25 views with @Route, setting up router layouts
+  Guide the agent on creating Vaadin 25 views with @Route, setting up router layouts
   (AppLayout, @Layout), navigation between views, and passing data via URL parameters.
   This skill should be used when the user asks to "create a view", "add a route",
   "use @Route", "set up navigation", "use AppLayout", "build a navigation menu",

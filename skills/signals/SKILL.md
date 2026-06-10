@@ -1,7 +1,7 @@
 ---
 name: signals
 description: >
-  Guide Claude on using Vaadin Signals for reactive state management in Vaadin 25 Flow.
+  Guide the agent on using Vaadin Signals for reactive state management in Vaadin 25 Flow.
   This skill should be used when the user asks to "use signals", "manage state reactively",
   "share state between users", "use reactive state", "use ValueSignal",
   "use ListSignal", "use SharedValueSignal", "use SharedNumberSignal",

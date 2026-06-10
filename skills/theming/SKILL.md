@@ -1,7 +1,7 @@
 ---
 name: theming
 description: >
-  Guide Claude on Vaadin 25 theming with both Aura and Lumo themes. This skill should be used
+  Guide the agent on Vaadin 25 theming with both Aura and Lumo themes. This skill should be used
   when the user asks to "choose a theme", "set up Aura", "set up Lumo", "customize the theme",
   "change colors", "enable dark mode", "customize design tokens", "use theme variants",
   "use utility classes", "change the color scheme", or needs help with theme-specific CSS

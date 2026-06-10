@@ -1,7 +1,7 @@
 ---
 name: vaadin-layouts
 description: >
-  Guide Claude on using Vaadin 25 HorizontalLayout and VerticalLayout correctly.
+  Guide the agent on using Vaadin 25 HorizontalLayout and VerticalLayout correctly.
   This skill should be used when the user asks to "create a layout", "arrange components",
   "align items", "fix layout sizing", "use HorizontalLayout", "use VerticalLayout",
   or needs help with spacing, padding, margins, flex-grow, flex-shrink, or alignment
