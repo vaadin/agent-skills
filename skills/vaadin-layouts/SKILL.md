@@ -27,9 +27,9 @@ actual version instead of relying on memorized behavior.
 2. **Fetch the layouts article** and follow it as the source of truth:
 
    ```
-   get_full_document(["v{version}/building-apps/ui-basics/layouts.md"])
+   get_full_document(["v{version}/building-apps/ui-basics/layouts/index.md"])
    ```
 
-   For example, `v25.2/building-apps/ui-basics/layouts.md`.
+   For example, `v25.2/building-apps/ui-basics/layouts/index.md`.
 
 For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
