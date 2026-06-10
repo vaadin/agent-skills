@@ -1,7 +1,7 @@
 ---
 name: reusable-components
 description: >
-  Guide Claude on structuring Vaadin 25 Flow views into focused, reusable components.
+  Guide the agent on structuring Vaadin 25 Flow views into focused, reusable components.
   This skill should be used when the user asks to "structure a view", "organize view code",
   "break down a complex view", "extract a component", "split a view into components",
   "simplify a large view", "create a reusable component", "use Composite",

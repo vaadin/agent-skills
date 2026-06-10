@@ -1,7 +1,7 @@
 ---
 name: ui-unit-testing
 description: >
-  Guide Claude on writing fast, browser-free tests for Vaadin 25 Flow views with
+  Guide the agent on writing fast, browser-free tests for Vaadin 25 Flow views with
   the Browserless Testing framework (formerly UI Unit Testing).
   This skill should be used when the user asks to "write a UI test", "unit test a view",
   "test without a browser", "use BrowserlessTest", "use UIUnitTest", "test a Vaadin component",

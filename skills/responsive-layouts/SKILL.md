@@ -1,7 +1,7 @@
 ---
 name: responsive-layouts
 description: >
-  Guide Claude on building responsive Vaadin layouts that adapt to different screen sizes.
+  Guide the agent on building responsive Vaadin layouts that adapt to different screen sizes.
   This skill should be used when the user asks to "make a layout responsive",
   "support mobile", "adapt to screen size", "use breakpoints", "use media queries",
   "use container queries", "responsive design", "mobile first", or needs help

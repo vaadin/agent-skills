@@ -1,7 +1,7 @@
 ---
 name: client-side-views
 description: >
-  Guide Claude on building client-side (React/Hilla) views in Vaadin 25.
+  Guide the agent on building client-side (React/Hilla) views in Vaadin 25.
   This skill should be used when the user asks to "build a client-side view",
   "create a React view", "use Hilla", "use @BrowserCallable",
   "file-based routing", "call Java from React", "create an offline view",

@@ -1,7 +1,7 @@
 ---
 name: third-party-components
 description: >
-  Guide Claude on integrating third-party Web Components and React components
+  Guide the agent on integrating third-party Web Components and React components
   from npm into Vaadin 25 Flow applications. This skill should be used when
   the user asks to "integrate a web component", "wrap a web component",
   "third-party component", "@Tag", "@NpmPackage", "@JsModule", "@DomEvent",

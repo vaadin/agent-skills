@@ -1,7 +1,7 @@
 ---
 name: frontend-design
 description: >
-  Guide Claude on creating visually distinctive, polished Vaadin 25 interfaces that go beyond
+  Guide the agent on creating visually distinctive, polished Vaadin 25 interfaces that go beyond
   default theme styling. This skill should be used when the user asks to "make it look good",
   "improve the design", "style the view", "make it visually appealing",
   "add polish", "design a UI", "create a beautiful interface", or when building a new view

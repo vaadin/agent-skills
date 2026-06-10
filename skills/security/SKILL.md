@@ -1,7 +1,7 @@
 ---
 name: security
 description: >
-  Guide Claude on securing Vaadin 25 applications with Spring Security.
+  Guide the agent on securing Vaadin 25 applications with Spring Security.
   This skill should be used when the user asks to "add security", "add login",
   "create a login view", "create a login form", "use Spring Security",
   "secure a view", "add authentication", "add authorization",
