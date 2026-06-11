@@ -8,7 +8,8 @@ description: >
   in Vaadin Flow views. Also trigger when debugging layout issues like components
   shrinking unexpectedly or overflowing their container, or when choosing between
   layout components (HorizontalLayout vs VerticalLayout vs FlexLayout vs AppLayout).
-version: 0.3.0
+  Also trigger for two-dimensional grids or card grids built with CSS Grid.
+version: 0.4.0
 ---
 
 # Vaadin Layouts: HorizontalLayout & VerticalLayout
@@ -24,12 +25,20 @@ actual version instead of relying on memorized behavior.
    If you can't find one, call `get_supported_vaadin_versions` and ask the user
    which version to target.
 
-2. **Fetch the layouts article** and follow it as the source of truth:
+2. **Fetch the relevant article(s)** with the project's version as the path
+   prefix (for example `v25.2`), and follow them as the source of truth:
 
-   ```
-   get_full_document(["v{version}/building-apps/ui-basics/layouts/index.md"])
-   ```
+   - The layouts overview -- rows, columns, sizing, alignment, spacing:
 
-   For example, `v25.2/building-apps/ui-basics/layouts/index.md`.
+     ```
+     get_full_document(["v{version}/building-apps/ui-basics/layouts/index.md"])
+     ```
+
+   - For a two-dimensional grid (rows *and* columns) or a card grid, also fetch
+     the CSS Grid article:
+
+     ```
+     get_full_document(["v{version}/building-apps/ui-basics/layouts/css-grid.md"])
+     ```
 
 For an exact Java API signature or to read source, use the javadoc MCP (`mcp__javadoc__*` — find via ToolSearch `javadoc` if not loaded) to read Javadoc and sources from Maven Central instead of unpacking jars from `~/.m2`.
