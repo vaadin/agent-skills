@@ -45,6 +45,37 @@ The CLI can also be run against a GitHub URL:
 npx skills add https://github.com/vaadin/agent-skills --skill views-and-navigation
 ```
 
+### MCP servers
+
+`npx skills add` installs only the skill files. It does **not** install the MCP
+servers declared in `.mcp.json`, which the skills rely on for up-to-date Vaadin
+documentation and Java API lookups. Install them separately for your agent.
+
+This repository uses two HTTP MCP servers:
+
+| Server | URL |
+| --- | --- |
+| `vaadin` | `https://mcp.vaadin.com/docs` |
+| `javadoc` | `https://www.javadocs.dev/mcp` |
+
+**Claude Code:**
+
+```sh
+claude mcp add --transport http vaadin https://mcp.vaadin.com/docs
+claude mcp add --transport http javadoc https://www.javadocs.dev/mcp
+```
+
+**Codex:**
+
+```sh
+codex mcp add vaadin --url https://mcp.vaadin.com/docs
+codex mcp add javadoc --url https://www.javadocs.dev/mcp
+```
+
+After adding the servers, start a session and run `/mcp` to verify they are
+connected. If you install this repository as a Codex or Claude plugin instead of
+via `npx skills add`, the servers are configured automatically from `.mcp.json`.
+
 ## Available Skills
 
 | Skill | Purpose |
