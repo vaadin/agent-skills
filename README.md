@@ -21,6 +21,15 @@ For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/c
 
 ## Installation
 
+Install as a Codex plugin:
+
+```sh
+codex plugin marketplace add vaadin/agent-skills
+codex plugin add vaadin-skills@vaadin
+```
+
+Codex plugin installation also configures the MCP servers declared in `.mcp.json`.
+
 Install all skills from this repository:
 
 ```sh
