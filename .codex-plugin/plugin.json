@@ -38,6 +38,8 @@
       "Style this Vaadin UI with Aura or Lumo.",
       "Write browserless tests for this Vaadin view."
     ],
-    "brandColor": "#00B4F0"
+    "brandColor": "#056FF0",
+    "composerIcon": "./assets/vaadin-symbol.svg",
+    "logo": "./assets/vaadin-logo-light.svg"
   }
 }
