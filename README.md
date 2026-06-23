@@ -2,13 +2,13 @@
 
 Agent skills for helping coding agents build, style, test, and secure Vaadin 25 applications.
 
-These skills are designed to be installed with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
+These skills can be installed as a plugin from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex) or with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
 This repository can be used in three ways:
 
+- as a plugin installed from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex)
 - as a source for `npx skills add`
-- as a Codex plugin source
-- as a Claude plugin source
+- as a Codex/Claude plugin source referenced directly
 
 It includes:
 
@@ -20,6 +20,37 @@ It includes:
 For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/claude-plugin) repository is kept as a marketplace that points back to this source-of-truth repository.
 
 ## Installation
+
+### Marketplace (recommended)
+
+The skills are published through the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace)
+marketplace for both Claude Code and Codex. Installing the plugin this way also
+configures the Vaadin MCP servers automatically from `.mcp.json` — no separate
+MCP setup required.
+
+**Claude Code:**
+
+```sh
+/plugin marketplace add vaadin/agent-marketplace
+/plugin install vaadin-skills@vaadin-marketplace
+```
+
+You can also browse and install `vaadin-skills` from the marketplace browser via
+`/plugin`. To pick up later changes, run `/plugin marketplace update vaadin-marketplace`.
+
+**Codex:**
+
+```sh
+codex plugin marketplace add vaadin/agent-marketplace --ref main
+codex plugin add vaadin-skills@vaadin-marketplace
+```
+
+To pick up later changes, run `codex plugin marketplace upgrade`.
+
+### `npx skills add`
+
+If you prefer to install just the skill files (without the plugin and its MCP
+configuration), use the [`skills` CLI](https://github.com/vercel-labs/skills).
 
 Install all skills from this repository:
 
@@ -47,9 +78,13 @@ npx skills add https://github.com/vaadin/agent-skills --skill views-and-navigati
 
 ### MCP servers
 
-`npx skills add` installs only the skill files. It does **not** install the MCP
-servers declared in `.mcp.json`, which the skills rely on for up-to-date Vaadin
-documentation and Java API lookups. Install them separately for your agent.
+Installing from the [marketplace](#marketplace-recommended) configures the MCP
+servers automatically from `.mcp.json`, so you can skip this section.
+
+`npx skills add`, on the other hand, installs only the skill files. It does
+**not** install the MCP servers declared in `.mcp.json`, which the skills rely on
+for up-to-date Vaadin documentation and Java API lookups. Install them separately
+for your agent.
 
 This repository uses two HTTP MCP servers:
 
@@ -73,8 +108,7 @@ codex mcp add javadoc --url https://www.javadocs.dev/mcp
 ```
 
 After adding the servers, start a session and run `/mcp` to verify they are
-connected. If you install this repository as a Codex or Claude plugin instead of
-via `npx skills add`, the servers are configured automatically from `.mcp.json`.
+connected.
 
 ## Available Skills
 
@@ -93,6 +127,7 @@ via `npx skills add`, the servers are configured automatically from `.mcp.json`.
 | `theming` | Configure and customize Vaadin Aura and Lumo themes. |
 | `third-party-components` | Integrate third-party Web Components and React components into Vaadin Flow applications. |
 | `ui-unit-testing` | Write fast browser-free Vaadin view tests with Browserless Testing. |
+| `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
 | `vaadin-layouts` | Use HorizontalLayout, VerticalLayout, FlexLayout, AppLayout, spacing, sizing, and alignment correctly. |
 | `views-and-navigation` | Create Vaadin views, routes, router layouts, navigation menus, and URL parameter handling. |
 

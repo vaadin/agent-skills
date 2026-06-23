@@ -14,6 +14,7 @@
         "./skills/theming",
         "./skills/third-party-components",
         "./skills/ui-unit-testing",
+        "./skills/vaadin-form-layout",
         "./skills/vaadin-layouts",
         "./skills/views-and-navigation"
     ],
