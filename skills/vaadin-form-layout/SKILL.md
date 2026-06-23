@@ -1,6 +1,16 @@
 ---
 name: vaadin-form-layout
-description: Creates forms in Vaadin Flow (Java) from any spec source — Figma URL, screenshot, text, or prompt. Use when asked to create, implement, build, or generate a form, entity editor, or data entry view in Vaadin. Also trigger when the user asks to "add fields", "add a form", "build a layout for editing", or describes collecting structured input from users — even if they don't say the word "form" explicitly.
+description: >
+  Builds the visual structure and layout of a form, entity editor, or data-entry
+  view in Vaadin Flow (Java) from any spec source — Figma URL, screenshot, text,
+  or prompt — choosing the fields and components, FormLayout sectioning, and
+  responsive column layout. Use when asked to create, implement, build, or
+  generate a form, entity editor, or data entry view in Vaadin, to "add fields",
+  "add a form", or "build a layout for editing", or when the user describes
+  collecting structured input from users — even if they don't say the word "form"
+  explicitly. This skill covers the form's layout and components only; to wire the
+  fields to a Java bean with Binder, converters, and validation, use the
+  forms-and-validation skill alongside this one.
 ---
  
 # Vaadin Form Creation

@@ -6,7 +6,9 @@ description: >
   "validate input", "use Binder", "use BeanValidationBinder", "add validation",
   "convert field values", "handle form submission", "cross-field validation",
   or needs help with field binding, converters, required fields, custom validators,
-  or form error handling in Vaadin Flow.
+  or form error handling in Vaadin Flow. This skill covers data binding and
+  validation; to lay out the form's fields and sections from a design or spec,
+  use the vaadin-form-layout skill alongside this one.
 version: 0.2.0
 ---
 
@@ -200,31 +202,7 @@ binder.setStatusLabel(errorDisplay);
 
 ## Form Layout
 
-Use `FormLayout` for automatic responsive column adjustment:
-
-Auto-responsive mode:
-
-```java
-FormLayout form = new FormLayout();
-form.setAutoResponsive(true);
-form.addFormRow(firstNameField, lastNameField);
-FormLayout.FormRow emailRow = new FormLayout.FormRow();
-emailRow.add(emailField, 2); // colspan 2
-form.add(emailRow);
-form.addFormRow(passwordField, confirmPasswordField);
-```
-
-Manually set responsive steps:
-
-```java
-FormLayout form = new FormLayout();
-form.add(nameField, emailField, phoneField);
-form.setColspan(descriptionField, 2);  // span multiple columns
-form.setResponsiveSteps(
-    new ResponsiveStep("0", 1),        // 1 column on mobile
-    new ResponsiveStep("500px", 2)     // 2 columns at 500px+
-);
-```
+Lay the fields out in a `FormLayout` for automatic responsive column adjustment. For choosing fields and components, `FormLayout` sectioning, auto-responsive vs responsive steps, and column spans — especially when building from a design or spec — use the `vaadin-form-layout` skill, which covers the layout in depth.
 
 ## Separating the Form into Its Own Class
 
