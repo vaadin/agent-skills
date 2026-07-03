@@ -20,8 +20,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Vaadin Skills",
-    "shortDescription": "Style, build forms for, and test Vaadin 25 applications.",
-    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, Binder-based forms and validation, form layouts, and browser testing with TestBench. It also configures the Vaadin MCP server for current documentation and API lookup.",
+    "shortDescription": "Style, design, and lay out Vaadin 25 application UIs.",
+    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, and building form and entity-editor layouts. It also configures the Vaadin MCP server for current documentation and API lookup.",
     "developerName": "Vaadin",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,9 +31,9 @@
     ],
     "websiteURL": "https://vaadin.com",
     "defaultPrompt": [
-      "Build a form for this entity in Vaadin 25.",
+      "Build a form layout for this entity in Vaadin 25.",
       "Style this Vaadin UI with the Aura theme.",
-      "Write end-to-end TestBench tests for this Vaadin view."
+      "Make this Vaadin view look polished."
     ],
     "brandColor": "#056FF0",
     "composerIcon": "./assets/vaadin-symbol.svg",

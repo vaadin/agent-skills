@@ -1,6 +1,6 @@
 # Vaadin Agent Skills
 
-Agent skills for helping coding agents build, style, and test Vaadin 25 applications.
+Agent skills for helping coding agents style, design, and lay out Vaadin 25 applications.
 
 These skills can be installed as a plugin from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex) or with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
@@ -67,7 +67,7 @@ npx skills add vaadin/agent-skills --skill frontend-design
 Install multiple specific skills:
 
 ```sh
-npx skills add vaadin/agent-skills --skill frontend-design --skill aura-theme --skill testbench-testing
+npx skills add vaadin/agent-skills --skill frontend-design --skill aura-theme
 ```
 
 The CLI can also be run against a GitHub URL:
@@ -115,9 +115,7 @@ connected.
 | Skill | Purpose |
 | --- | --- |
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
-| `forms-and-validation` | Build Binder-based Vaadin Flow forms with validation, converters, and robust submission handling. |
 | `frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
-| `testbench-testing` | Write end-to-end browser tests with Vaadin TestBench. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
 
 ## Repository Structure

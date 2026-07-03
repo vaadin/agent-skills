@@ -9,8 +9,8 @@ description: >
   "add a form", or "build a layout for editing", or when the user describes
   collecting structured input from users — even if they don't say the word "form"
   explicitly. This skill covers the form's layout and components only; to wire the
-  fields to a Java bean with Binder, converters, and validation, use the
-  forms-and-validation skill alongside this one.
+  fields to a Java bean with Binder, converters, and validation, look up the
+  Binder and Form Validation guides via the Vaadin docs MCP (search_vaadin_docs).
 ---
  
 # Vaadin Form Creation
