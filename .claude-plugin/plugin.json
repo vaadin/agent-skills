@@ -2,25 +2,12 @@
     "name": "vaadin-skills",
     "skills": [
         "./skills/aura-theme",
-        "./skills/client-side-views",
-        "./skills/data-providers",
-        "./skills/forms-and-validation",
         "./skills/frontend-design",
-        "./skills/responsive-layouts",
-        "./skills/reusable-components",
-        "./skills/security",
-        "./skills/signals",
-        "./skills/testbench-testing",
-        "./skills/theming",
-        "./skills/third-party-components",
-        "./skills/ui-unit-testing",
-        "./skills/vaadin-form-layout",
-        "./skills/vaadin-layouts",
-        "./skills/views-and-navigation"
+        "./skills/vaadin-form-layout"
     ],
-    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — layouts, components, forms, testing, data, and reactive state management",
+    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, and form layout",
     "author": {
         "name": "Vaadin"
     },
-    "keywords": ["vaadin", "java", "flow", "web", "ui", "spring-boot"]
+    "keywords": ["vaadin", "java", "flow", "web", "ui"]
 }

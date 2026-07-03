@@ -1,6 +1,6 @@
 # Vaadin Agent Skills
 
-Agent skills for helping coding agents build, style, test, and secure Vaadin 25 applications.
+Agent skills for helping coding agents style, design, and lay out Vaadin 25 applications.
 
 These skills can be installed as a plugin from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex) or with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
@@ -67,13 +67,13 @@ npx skills add vaadin/agent-skills --skill frontend-design
 Install multiple specific skills:
 
 ```sh
-npx skills add vaadin/agent-skills --skill frontend-design --skill theming --skill ui-unit-testing
+npx skills add vaadin/agent-skills --skill frontend-design --skill aura-theme
 ```
 
 The CLI can also be run against a GitHub URL:
 
 ```sh
-npx skills add https://github.com/vaadin/agent-skills --skill views-and-navigation
+npx skills add https://github.com/vaadin/agent-skills --skill vaadin-form-layout
 ```
 
 ### MCP servers
@@ -115,21 +115,8 @@ connected.
 | Skill | Purpose |
 | --- | --- |
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
-| `client-side-views` | Build client-side React/Hilla views, file-based routes, and type-safe backend communication in Vaadin 25. |
-| `data-providers` | Use Vaadin data providers for Grid, ComboBox, lazy loading, filtering, sorting, and pagination. |
-| `forms-and-validation` | Build Binder-based Vaadin Flow forms with validation, converters, and robust submission handling. |
 | `frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
-| `responsive-layouts` | Build responsive Vaadin layouts for desktop and mobile screens. |
-| `reusable-components` | Structure large Vaadin Flow views into focused, reusable components. |
-| `security` | Secure Vaadin applications with Spring Security, route access control, login, logout, roles, and OAuth2. |
-| `signals` | Use Vaadin Signals for reactive local and shared state management. |
-| `testbench-testing` | Write end-to-end browser tests with Vaadin TestBench. |
-| `theming` | Configure and customize Vaadin Aura and Lumo themes. |
-| `third-party-components` | Integrate third-party Web Components and React components into Vaadin Flow applications. |
-| `ui-unit-testing` | Write fast browser-free Vaadin view tests with Browserless Testing. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
-| `vaadin-layouts` | Use HorizontalLayout, VerticalLayout, FlexLayout, AppLayout, spacing, sizing, and alignment correctly. |
-| `views-and-navigation` | Create Vaadin views, routes, router layouts, navigation menus, and URL parameter handling. |
 
 ## Repository Structure
 
@@ -146,10 +133,10 @@ skills/
     SKILL.md
     references/
       design-patterns.md
-  theming/
+  aura-theme/
     SKILL.md
     references/
-      theming-patterns.md
+      property-values.md
 ```
 
 `SKILL.md` contains the skill front matter and primary instructions. The optional `references/` directory contains deeper supporting material that agents can load only when needed.
