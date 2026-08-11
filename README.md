@@ -116,6 +116,7 @@ connected.
 | --- | --- |
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
 | `frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
+| `theme-mixing-check` | Verify a Vaadin app does not mix the Aura and Lumo base themes, using the `check-theme-mixing` agent tool. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
 
 ## Repository Structure

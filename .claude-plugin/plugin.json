@@ -3,6 +3,7 @@
     "skills": [
         "./skills/aura-theme",
         "./skills/frontend-design",
+        "./skills/theme-mixing-check",
         "./skills/vaadin-form-layout"
     ],
     "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, and form layout",
