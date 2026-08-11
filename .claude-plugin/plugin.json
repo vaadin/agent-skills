@@ -1,13 +1,26 @@
 {
     "name": "vaadin-skills",
+    "version": "0.1.0",
     "skills": [
         "./skills/aura-theme",
-        "./skills/frontend-design",
+        "./skills/vaadin-frontend-design",
         "./skills/vaadin-form-layout"
     ],
-    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, and form layout",
+    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, and form layout. Includes the hosted Vaadin MCP server for current documentation and API lookup.",
     "author": {
-        "name": "Vaadin"
+        "name": "Vaadin",
+        "url": "https://vaadin.com"
     },
-    "keywords": ["vaadin", "java", "flow", "web", "ui"]
+    "homepage": "https://github.com/vaadin/agent-skills",
+    "repository": "https://github.com/vaadin/agent-skills",
+    "license": "Apache-2.0",
+    "keywords": [
+        "vaadin",
+        "java",
+        "flow",
+        "web",
+        "ui",
+        "spring-boot",
+        "spring"
+    ]
 }

@@ -61,13 +61,13 @@ npx skills add vaadin/agent-skills
 Install a specific skill:
 
 ```sh
-npx skills add vaadin/agent-skills --skill frontend-design
+npx skills add vaadin/agent-skills --skill vaadin-frontend-design
 ```
 
 Install multiple specific skills:
 
 ```sh
-npx skills add vaadin/agent-skills --skill frontend-design --skill aura-theme
+npx skills add vaadin/agent-skills --skill vaadin-frontend-design --skill aura-theme
 ```
 
 The CLI can also be run against a GitHub URL:
@@ -115,7 +115,7 @@ connected.
 | Skill | Purpose |
 | --- | --- |
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
-| `frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
+| `vaadin-frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
 
 ## Repository Structure
@@ -129,7 +129,7 @@ Each skill lives in its own directory under `skills/`:
   plugin.json
 .mcp.json
 skills/
-  frontend-design/
+  vaadin-frontend-design/
     SKILL.md
     references/
       design-patterns.md
@@ -146,7 +146,7 @@ skills/
 After editing a skill, reinstall it locally with the same command you used for installation. For example:
 
 ```sh
-npx skills add vaadin/agent-skills --skill frontend-design
+npx skills add vaadin/agent-skills --skill vaadin-frontend-design
 ```
 
 If you are working from a local checkout, use the local path:
