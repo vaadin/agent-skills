@@ -1,5 +1,5 @@
 ---
-name: frontend-design
+name: vaadin-frontend-design
 description: >
   Guide the agent on creating visually distinctive, polished Vaadin 25 interfaces that go beyond
   default theme styling. This skill should be used when the user asks to "make it look good",
