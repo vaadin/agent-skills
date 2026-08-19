@@ -76,17 +76,17 @@ The CLI can also be run against a GitHub URL:
 npx skills add https://github.com/vaadin/agent-skills --skill vaadin-form-layout
 ```
 
-### MCP servers
+### MCP server
 
 Installing from the [marketplace](#marketplace-recommended) configures the MCP
-servers automatically from `.mcp.json`, so you can skip this section.
+server automatically from `.mcp.json`, so you can skip this section.
 
 `npx skills add`, on the other hand, installs only the skill files. It does
-**not** install the MCP servers declared in `.mcp.json`, which the skills rely on
-for up-to-date Vaadin documentation and Java API lookups. Install them separately
+**not** install the MCP server declared in `.mcp.json`, which the skills rely on
+for up-to-date Vaadin documentation and Java API lookups. Install it separately
 for your agent.
 
-This repository currently uses one HTTP MCP server:
+This repository uses a single HTTP MCP server:
 
 | Server | URL |
 | --- | --- |
@@ -104,7 +104,7 @@ claude mcp add --transport http vaadin https://mcp.vaadin.com/docs
 codex mcp add vaadin --url https://mcp.vaadin.com/docs
 ```
 
-After adding the servers, start a session and run `/mcp` to verify they are
+After adding the server, start a session and run `/mcp` to verify it is
 connected.
 
 ## Available Skills
