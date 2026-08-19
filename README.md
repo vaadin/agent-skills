@@ -25,7 +25,7 @@ For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/c
 
 The skills are published through the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace)
 marketplace for both Claude Code and Codex. Installing the plugin this way also
-configures the Vaadin MCP servers automatically from `.mcp.json` — no separate
+configures the Vaadin MCP server automatically from `.mcp.json` — no separate
 MCP setup required.
 
 **Claude Code:**
@@ -76,38 +76,35 @@ The CLI can also be run against a GitHub URL:
 npx skills add https://github.com/vaadin/agent-skills --skill vaadin-form-layout
 ```
 
-### MCP servers
+### MCP server
 
 Installing from the [marketplace](#marketplace-recommended) configures the MCP
-servers automatically from `.mcp.json`, so you can skip this section.
+server automatically from `.mcp.json`, so you can skip this section.
 
 `npx skills add`, on the other hand, installs only the skill files. It does
-**not** install the MCP servers declared in `.mcp.json`, which the skills rely on
-for up-to-date Vaadin documentation and Java API lookups. Install them separately
+**not** install the MCP server declared in `.mcp.json`, which the skills rely on
+for up-to-date Vaadin documentation and Java API lookups. Install it separately
 for your agent.
 
-This repository uses two HTTP MCP servers:
+This repository uses a single HTTP MCP server:
 
 | Server | URL |
 | --- | --- |
 | `vaadin` | `https://mcp.vaadin.com/docs` |
-| `javadoc` | `https://www.javadocs.dev/mcp` |
 
 **Claude Code:**
 
 ```sh
 claude mcp add --transport http vaadin https://mcp.vaadin.com/docs
-claude mcp add --transport http javadoc https://www.javadocs.dev/mcp
 ```
 
 **Codex:**
 
 ```sh
 codex mcp add vaadin --url https://mcp.vaadin.com/docs
-codex mcp add javadoc --url https://www.javadocs.dev/mcp
 ```
 
-After adding the servers, start a session and run `/mcp` to verify they are
+After adding the server, start a session and run `/mcp` to verify it is
 connected.
 
 ## Available Skills
