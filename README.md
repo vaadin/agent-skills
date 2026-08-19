@@ -86,25 +86,22 @@ servers automatically from `.mcp.json`, so you can skip this section.
 for up-to-date Vaadin documentation and Java API lookups. Install them separately
 for your agent.
 
-This repository uses two HTTP MCP servers:
+This repository currently uses one HTTP MCP server:
 
 | Server | URL |
 | --- | --- |
 | `vaadin` | `https://mcp.vaadin.com/docs` |
-| `javadoc` | `https://www.javadocs.dev/mcp` |
 
 **Claude Code:**
 
 ```sh
 claude mcp add --transport http vaadin https://mcp.vaadin.com/docs
-claude mcp add --transport http javadoc https://www.javadocs.dev/mcp
 ```
 
 **Codex:**
 
 ```sh
 codex mcp add vaadin --url https://mcp.vaadin.com/docs
-codex mcp add javadoc --url https://www.javadocs.dev/mcp
 ```
 
 After adding the servers, start a session and run `/mcp` to verify they are
