@@ -25,7 +25,7 @@ For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/c
 
 The skills are published through the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace)
 marketplace for both Claude Code and Codex. Installing the plugin this way also
-configures the Vaadin MCP servers automatically from `.mcp.json` — no separate
+configures the Vaadin MCP server automatically from `.mcp.json` — no separate
 MCP setup required.
 
 **Claude Code:**

@@ -1,6 +1,6 @@
 {
   "name": "vaadin-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Skills and tools for building high-quality Vaadin 25 applications with Java, Flow, and the Vaadin MCP server.",
   "author": {
     "name": "Vaadin",
