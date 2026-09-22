@@ -61,10 +61,12 @@ Map user intent to Aura properties:
 | warmer/cooler neutral tones | Adjust `--aura-neutral-light` and `--aura-neutral-dark` |
 | compact, dense | `--aura-base-size: 12` |
 | spacious, roomy | `--aura-base-size: 20` |
-| sharp, angular, square | `--aura-base-radius: 0` |
-| slightly rounded | `--aura-base-radius: 3` (default, often omitted) |
+| sharp, angular, square | `--vaadin-radius-s/m/l: 0` (no base radius value gives square corners) |
+| minimal rounding | `--aura-base-radius: -1` |
+| subtle, slightly rounded | `--aura-base-radius: 0` |
+| default rounding | `--aura-base-radius: 3` (default, omit) |
 | rounded, soft | `--aura-base-radius: 4` |
-| very rounded, pill-shaped | `--aura-base-radius: 7` (use sparingly) |
+| very rounded | `--aura-base-radius: 7` (large surfaces only — small components are clamped) |
 | high contrast, accessible | `--aura-contrast-level: 2` |
 | subtle, soft contrast | `--aura-contrast-level: 0.25` |
 | flat, minimal, low surface | `--aura-surface-level: -0.5` |
@@ -163,7 +165,7 @@ vaadin-dashboard-widget {
 | set grid row backgrounds or stripes | Grid row properties (`--vaadin-grid-row-background-color`, `--vaadin-grid-row-odd-background-color`) |
 
 **Important considerations:**
-- **Border radius:** Be conservative. Small components (buttons, inputs) use the same value. `--aura-base-radius: 7` is very rounded — only use when explicitly requested.
+- **Border radius:** `--aura-base-radius` scales three derived steps rather than setting a radius directly. `--vaadin-radius-s` is clamped at `0.25lh`, so buttons and inputs stop changing above base `3` — raising it affects cards and dialogs only, and no base value yields square corners. For "square", set `--vaadin-radius-s/m/l: 0` directly (see reference).
 - **Colorful backgrounds:** When the user wants a vibrant/colorful UI, use the Accent background option with oklch formulas (see reference) instead of named backgrounds.
 - **Color palette adjustment:** Adjust palette colors (`--aura-red`, `--aura-green`, etc.) to match the overall style (muted, bright, brand-specific). Keep color hues consistent (red stays red-ish, green stays green-ish) but adjust tone/saturation. Text colors are automatically derived.
 - **User colors adjustment:** Adjust user color palette (`--vaadin-user-color-*`) to match the overall style for consistent visual appearance in avatars and charts.
