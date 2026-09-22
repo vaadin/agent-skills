@@ -231,3 +231,26 @@ test('a sheet imported twice is applied twice, as the cascade would', () => {
   );
   assert.equal(defaults.get('--aura-base-size').value, '18');
 });
+
+test('an enclosing @scope that excludes root excludes the declaration', () => {
+  const enclosed = collectDeclarations(
+    sheets({
+      'aura.css': `@scope (.card) { @scope (:root) { :root { --aura-base-size: 18; } } } :root { --aura-base-size: 16; }`,
+    }),
+  );
+  assert.equal(enclosed.defaults.get('--aura-base-size').value, '16');
+});
+
+test('a nearer @scope wins at equal specificity', () => {
+  const { defaults } = collectDeclarations(
+    sheets({ 'aura.css': `@scope (:root) { :root { --aura-base-size: 18; } } :root { --aura-base-size: 16; }` }),
+  );
+  assert.equal(defaults.get('--aura-base-size').value, '18');
+});
+
+test('specificity counts every component of a compound selector', () => {
+  const { defaults } = collectDeclarations(
+    sheets({ 'aura.css': `:is(:root, .a.b) { --aura-base-size: 18; } :root { --aura-base-size: 16; }` }),
+  );
+  assert.equal(defaults.get('--aura-base-size').value, '18');
+});

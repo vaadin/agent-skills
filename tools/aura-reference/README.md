@@ -35,11 +35,11 @@ conditional ones (`@media (pointer: coarse) { --aura-base-size: 18 }`) are delib
 excluded — neither is the theme default.
 
 `lib/parse-css.mjs` is not a general CSS engine. It resolves competing root declarations by
-`!important`, then the specificity of the selector that matches root — only the root-matching
-parts of a list count, so `:where(:root), vaadin-button` stays a zero-specificity root
-declaration — then document order. What it cannot resolve, it refuses: `@layer` and a
-conditional `@import` (`layer`, `supports()`, a media query) throw rather than being flattened
-into an unconditional default.
+`!important`, then `@scope` proximity, then the specificity of the selector that matches root —
+only the root-matching parts of a list count, so `:where(:root), vaadin-button` stays a
+zero-specificity root declaration — then document order. What it cannot resolve, it refuses:
+`@layer` and a qualified `@import` (`layer`, `supports()`, a media query) throw rather than
+being flattened into an unconditional default.
 
 **Write-safety** comes from the Aura reference pages in `vaadin/docs`, which mark read-only
 properties with a `Read-only` or `light-dark()` badge. This is not derivable from the CSS:

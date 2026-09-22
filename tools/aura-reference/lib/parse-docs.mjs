@@ -27,12 +27,28 @@ const ROLE_ATTRIBUTE = /role\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s,\]]+))/g;
 const BADGE_SPAN = /\[\.?badge((?:[.\s][^\]]*)?)\]/i;
 
 /**
- * Wording that means a badge is present even if its markup is not recognized —
- * but only where it sits inside markup. In running prose, "defaults to
- * light-dark()" is a sentence, not a badge.
+ * Wording that means a badge is present even when its markup is not recognized.
+ *
+ * A badge sets its label off with delimiters — `*Read-only*`, `#Read-only#`,
+ * `<b>Read-only</b>`, `[Read-only,role=badge]`. In running prose the same words
+ * sit between spaces, so the neighbouring characters are what tell the two
+ * apart; anything else here would either miss new badge markup or block the
+ * docs from explaining `light-dark()` in a sentence.
  */
-const BADGE_WORDING = /read-only|light-dark\(\)/i;
-const LOOKS_LIKE_MARKUP = /[[\]<>{}#]|xref:/;
+const BADGE_WORDING = /read-only|light-dark\(\)/gi;
+const BADGE_DELIMITER = /[[\]<>{}#*_|"']/;
+
+function looksLikeUnrecognizedBadge(trailer) {
+  for (const match of trailer.matchAll(BADGE_WORDING)) {
+    const before = trailer[match.index - 1] ?? ' ';
+    const after = trailer[match.index + match[0].length] ?? ' ';
+    // Part of a longer identifier, such as the `#read-only-properties` anchor
+    // these pages link to — not a label.
+    if (/[\w-]/.test(before) || /[\w-]/.test(after)) continue;
+    if (BADGE_DELIMITER.test(before) || BADGE_DELIMITER.test(after)) return true;
+  }
+  return false;
+}
 
 const PROPERTY_PATTERN = /`(--aura-[\w*-]+)`([^`]*)$/;
 
@@ -62,7 +78,7 @@ function classifyBadges(trailer, context) {
   const lightDark =
     roles.some((role) => /\blight-dark\b/.test(role)) || (span !== null && /\blight-dark\b/.test(span[1]));
 
-  if (!readOnly && BADGE_WORDING.test(trailer) && LOOKS_LIKE_MARKUP.test(trailer)) {
+  if (!readOnly && looksLikeUnrecognizedBadge(trailer)) {
     throw new Error(
       `Unrecognized badge markup in ${context}:\n  ${trailer.trim()}\n` +
         'The text reads as a read-only badge but no known badge form matched, which would silently ' +

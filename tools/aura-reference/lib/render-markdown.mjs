@@ -7,7 +7,15 @@
  * drift surfaces instead of going unnoticed.
  */
 
-const BLOCK_PATTERN = /([ \t]*)<!-- BEGIN GENERATED (\S+) -->\n[\s\S]*?\n[ \t]*<!-- END GENERATED \2 -->/g;
+/**
+ * One marker per line, with optional indentation and trailing whitespace.
+ *
+ * Validation and rendering must never disagree about what counts as a marker:
+ * if a marker the scanner accepts is one the renderer skips, a block quietly
+ * stops being generated while the inventory check still passes. There is
+ * therefore exactly one pattern, used by both.
+ */
+const MARKER_LINE = /^([ \t]*)<!--[ \t]*(BEGIN|END) GENERATED[ \t]+(\S+?)[ \t]*-->[ \t\r]*$/gm;
 
 function table(headers, rows) {
   const lines = [`| ${headers.join(' | ')} |`, `|${headers.map(() => '---').join('|')}|`];
@@ -174,47 +182,56 @@ function buildBlock(id, context) {
 }
 
 /**
- * Every generated marker in the document, paired up.
+ * Every generated block in the document, paired up from its raw markers.
  *
- * Rendering alone cannot police this: an orphaned or duplicated marker simply
- * fails to match the block pattern, leaving stale content in place while the
- * run reports success. Reading the raw markers is what makes that visible.
+ * Rendering alone cannot police this: an orphaned, duplicated, or misspelled
+ * marker simply fails to pair, leaving stale content in place while the run
+ * reports success. Reading the markers is what makes that visible.
  *
- * @returns {{ids: string[], problems: string[]}}
+ * @returns {{blocks: object[], ids: string[], problems: string[]}}
  */
 export function scanBlockMarkers(markdown) {
-  const markers = [...markdown.matchAll(/<!--\s*(BEGIN|END) GENERATED (\S+?)\s*-->/g)];
   const problems = [];
-  const ids = [];
+  const blocks = [];
   let open = null;
 
-  for (const [, kind, id] of markers) {
-    if (kind === 'BEGIN') {
-      if (open !== null) problems.push(`"${open}" is not closed before "${id}" begins`);
-      else if (ids.includes(id)) problems.push(`"${id}" appears more than once`);
-      open = id;
-    } else if (open === null) {
-      problems.push(`"${id}" is closed without being opened`);
-    } else {
-      if (open !== id) problems.push(`"${open}" is closed by an "${id}" marker`);
-      ids.push(open);
-      open = null;
+  for (const match of markdown.matchAll(MARKER_LINE)) {
+    const marker = { indent: match[1], kind: match[2], id: match[3], start: match.index, end: match.index + match[0].length };
+
+    if (marker.kind === 'BEGIN') {
+      if (open !== null) problems.push(`"${open.id}" is not closed before "${marker.id}" begins`);
+      else if (blocks.some((block) => block.id === marker.id)) problems.push(`"${marker.id}" appears more than once`);
+      open = marker;
+      continue;
     }
+
+    if (open === null) {
+      problems.push(`"${marker.id}" is closed without being opened`);
+      continue;
+    }
+    if (open.id !== marker.id) problems.push(`"${open.id}" is closed by an "${marker.id}" marker`);
+    blocks.push({ id: open.id, indent: open.indent, bodyStart: open.end, bodyEnd: marker.start });
+    open = null;
   }
 
-  if (open !== null) problems.push(`"${open}" is never closed`);
-  return { ids, problems };
+  if (open !== null) problems.push(`"${open.id}" is never closed`);
+  return { blocks, ids: blocks.map((block) => block.id), problems };
 }
 
 export function renderGeneratedBlocks(markdown, context) {
-  const seen = new Set();
-  const rendered = markdown.replace(BLOCK_PATTERN, (_, indent, id) => {
-    seen.add(id);
-    const body = buildBlock(id, context)
+  const { blocks, ids, problems } = scanBlockMarkers(markdown);
+  if (problems.length > 0) throw new Error(`Broken generated markers:\n  ${problems.join('\n  ')}`);
+
+  let rendered = '';
+  let cursor = 0;
+  for (const block of blocks) {
+    const body = buildBlock(block.id, context)
       .split('\n')
-      .map((line) => (line ? indent + line : line))
+      .map((line) => (line ? block.indent + line : line))
       .join('\n');
-    return `${indent}<!-- BEGIN GENERATED ${id} -->\n${body}\n${indent}<!-- END GENERATED ${id} -->`;
-  });
-  return { markdown: rendered, blocks: [...seen] };
+    rendered += `${markdown.slice(cursor, block.bodyStart)}\n${body}\n`;
+    cursor = block.bodyEnd;
+  }
+
+  return { markdown: rendered + markdown.slice(cursor), blocks: ids };
 }

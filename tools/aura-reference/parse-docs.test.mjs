@@ -183,3 +183,23 @@ test('prose that merely mentions light-dark() does not trip the badge guard', ()
 
   assert.equal(properties.get('--aura-accent-color-light').readOnly, false);
 });
+
+test('a badge label set off by delimiters fails the run, prose does not', () => {
+  const fires = [
+    '`--aura-surface-color` *Read-only*::',
+    '`--aura-surface-color` <b>Read-only</b>::',
+    '`--aura-surface-color` #Read-only#::',
+    '`--aura-surface-color` |Read-only|::',
+  ];
+  for (const source of fires) {
+    assert.throws(() => parseDocumentedProperties(page('x', `${source}\nText.`)), /Unrecognized badge markup/, source);
+  }
+
+  const prose = [
+    '`--aura-accent-color-light` Defaults to light-dark() but can be customized.::',
+    '`--aura-accent-color-light` See xref:./#read-only-properties[the guide] for how light-dark() works.::',
+  ];
+  for (const source of prose) {
+    assert.doesNotThrow(() => parseDocumentedProperties(page('x', `${source}\nText.`)), source);
+  }
+});

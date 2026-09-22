@@ -70,44 +70,80 @@ function isRootSelector(selector) {
 }
 
 function matchesRoot(selectorList, atRules) {
-  // Only the innermost `@scope` decides what the rule — and `:scope` — refers
-  // to. `@scope (:root) { @scope (.card) { … } }` is scoped to cards.
-  const innermostScope = atRules.filter((rule) => /^@scope\b/i.test(rule)).at(-1);
-  if (innermostScope !== undefined) {
-    const prelude = /^@scope\s*\((.*?)\)/i.exec(innermostScope);
-    if (!prelude || !splitTopLevel(prelude[1]).some(isRootSelector)) return false;
-  }
+  // Every enclosing `@scope` has to admit the root element, not just the
+  // innermost one: `@scope (.card) { @scope (:root) { … } }` only ever matches
+  // inside a card.
+  const scopes = atRules.filter((rule) => /^@scope\b/i.test(rule));
+  const admitsRoot = (rule) => {
+    const prelude = /^@scope\s*\((.*?)\)/i.exec(rule);
+    return prelude !== null && splitTopLevel(prelude[1]).some(isRootSelector);
+  };
+  if (!scopes.every(admitsRoot)) return false;
 
   if (splitTopLevel(selectorList).some(isRootSelector)) return true;
   // `@scope (:root) { :scope { … } }` addresses the root element too.
-  return innermostScope !== undefined && /^(?::(?:where|is)\(:scope\)|:scope)$/i.test(selectorList.trim());
+  return scopes.length > 0 && SCOPE_SELECTOR.test(selectorList.trim());
 }
 
+const SCOPE_SELECTOR = /^(?::(?:where|is)\(:scope\)|:scope)$/i;
+
 /**
- * Approximate specificity of one compound selector: id, then class/attribute/
- * pseudo-class, then type. `:where()` contributes nothing and `:is()` takes its
- * most specific argument, as the selectors spec says.
+ * Approximate specificity of one selector, as a single number: ids count 100,
+ * classes/attributes/pseudo-classes 10, types 1. `:where()` contributes
+ * nothing; `:is()` and `:not()` take their most specific argument, as the
+ * selectors spec says.
  */
 function selectorWeight(selector) {
-  const wrapper = /^:(where|is|matches)\((.*)\)$/is.exec(selector.trim());
-  if (wrapper) {
-    if (/^where$/i.test(wrapper[1])) return 0;
-    return Math.max(0, ...splitTopLevel(wrapper[2]).map(selectorWeight));
+  let weight = 0;
+
+  for (let i = 0; i < selector.length; i++) {
+    const rest = selector.slice(i);
+
+    const functional = /^:(where|is|matches|not|has)\(/i.exec(rest);
+    if (functional) {
+      const args = rest.slice(functional[0].length - 1);
+      let depth = 0;
+      let end = 0;
+      for (; end < args.length; end++) {
+        if (args[end] === '(') depth++;
+        else if (args[end] === ')' && --depth === 0) break;
+      }
+      if (!/^where$/i.test(functional[1])) {
+        weight += Math.max(0, ...splitTopLevel(args.slice(1, end)).map(selectorWeight));
+      }
+      i += functional[0].length - 1 + end;
+      continue;
+    }
+
+    if (rest.startsWith('::')) {
+      weight += 1; // pseudo-element
+      i += 1 + (/^::[\w-]*/.exec(rest)?.[0].length ?? 2) - 2;
+      continue;
+    }
+    if (selector[i] === '#') weight += 100;
+    else if (selector[i] === '.' || selector[i] === ':') weight += 10;
+    else if (selector[i] === '[') {
+      weight += 10;
+      const close = selector.indexOf(']', i);
+      i = close === -1 ? selector.length : close;
+    } else if (/[\w-]/.test(selector[i]) && (i === 0 || /[\s>+~,)]/.test(selector[i - 1]))) {
+      weight += 1; // type selector
+    }
   }
-  const compound = selector.trim();
-  if (compound.startsWith('#')) return 100;
-  if (/^[.[:]/.test(compound)) return 10;
-  return 1;
+
+  return weight;
 }
 
 /**
  * The weight a declaration carries *on the root element*. Only the parts of the
- * list that match root count: a block shared with component selectors still
+ * list that address root count: a block shared with component selectors still
  * lands on root with the weight of its own root selector, so
  * `:where(:root), vaadin-button` stays a zero-specificity root declaration.
  */
 function rootSpecificity(selectorList) {
-  const matching = splitTopLevel(selectorList).filter(isRootSelector);
+  const matching = splitTopLevel(selectorList).filter(
+    (part) => isRootSelector(part) || SCOPE_SELECTOR.test(part.trim()),
+  );
   return matching.length === 0 ? 0 : Math.max(...matching.map(selectorWeight));
 }
 
@@ -169,6 +205,7 @@ function scanStylesheet(css, { onDeclaration, onStatement }) {
       important,
       selector,
       specificity: rootSpecificity(selector),
+      scopeDepth: atRules.filter((rule) => /^@scope\b/i.test(rule)).length,
       root: selectors.length === 1 && matchesRoot(selector, atRules),
       conditional: atRules.some((rule) => AT_RULE_CONDITIONS.test(rule)),
       conditions: atRules.filter((rule) => AT_RULE_CONDITIONS.test(rule)),
@@ -272,12 +309,13 @@ function cascadeOrder(stylesheets, entry, chain = []) {
 
 /**
  * Orders two competing root declarations the way the cascade would: an
- * `!important` declaration wins, then the more specific selector, then the one
- * that comes later.
+ * `!important` declaration wins, then the nearer `@scope`, then the more
+ * specific selector, then the one that comes later.
  */
 function wins(candidate, incumbent) {
   if (!incumbent) return true;
   if (candidate.important !== incumbent.important) return candidate.important;
+  if (candidate.scopeDepth !== incumbent.scopeDepth) return candidate.scopeDepth > incumbent.scopeDepth;
   return candidate.specificity >= incumbent.specificity;
 }
 
