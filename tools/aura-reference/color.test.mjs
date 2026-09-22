@@ -49,3 +49,21 @@ test('values that depend on context resolve to null rather than a guess', () => 
   ];
   for (const value of unresolvable) assert.equal(resolveColor(value), null, value);
 });
+
+test('out-of-range oklch() components are clamped before conversion, as CSS does', () => {
+  // Negative chroma is clamped to zero at parse time, which makes this a gray;
+  // clipping the resulting RGB channels instead would give a blue-green.
+  assert.deepEqual(resolveColor('oklch(0.5 -0.2 25)'), resolveColor('oklch(0.5 0 25)'));
+  assert.deepEqual(resolveColor('oklch(1.5 0.1 25)'), resolveColor('oklch(1 0.1 25)'));
+});
+
+test('malformed color syntax resolves to null, never to a value', () => {
+  const malformed = ['oklch(0.5 0.2 .)', 'rgb(1,,2,3)', 'oklch(0.5 0.2)', 'rgb(1 2)', 'oklch(a b c)'];
+  for (const value of malformed) assert.equal(resolveColor(value), null, value);
+});
+
+test('an alpha channel is not silently dropped', () => {
+  assert.equal(resolveColor('oklch(0.59 0.2 25 / 0.5)'), null);
+  assert.equal(resolveColor('rgb(50 102 228 / 50%)'), null);
+  assert.equal(resolveColor('#3266e480'), null);
+});

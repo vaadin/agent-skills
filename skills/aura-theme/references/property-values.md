@@ -124,11 +124,11 @@ Aura provides a customizable color palette consisting of neutral (grayscale) and
 The neutral color forms the basis of text and border colors. Aura derives it from the background color, so it has no fixed hex default.
 
 <!-- BEGIN GENERATED neutral-colors -->
-| Property | Aura default | Write? |
-|---|---|---|
-| `--aura-neutral` | computed from `--aura-neutral-light`, `--aura-neutral-dark` | read-only |
-| `--aura-neutral-light` | computed from `--aura-background-color-light`, `--aura-contrast-level` | customizable |
-| `--aura-neutral-dark` | computed from `--aura-background-color-dark`, `--aura-contrast-level` | customizable |
+| Property | Aura default | Write? | Notes |
+|---|---|---|---|
+| `--aura-neutral` | computed from `--aura-neutral-light`, `--aura-neutral-dark` | read-only | Automatically assigned the value of the -light or -dark suffixed property, depending on the active color scheme. |
+| `--aura-neutral-light` | computed from `--aura-background-color-light`, `--aura-contrast-level` | customizable | A dark gray by default. |
+| `--aura-neutral-dark` | computed from `--aura-background-color-dark`, `--aura-contrast-level` | customizable | White by default. |
 <!-- END GENERATED neutral-colors -->
 
 ### Saturated Colors

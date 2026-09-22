@@ -3,9 +3,10 @@ import { gunzipSync } from 'node:zlib';
 /**
  * Minimal reader for the ustar archives npm publishes. Only what a package
  * tarball actually contains: regular files and directories, short names, no
- * sparse entries. Anything else is skipped rather than guessed at.
+ * sparse entries. Anything else throws — a generator that trusts this data to
+ * state Aura's defaults must not read a corrupt archive as an empty one.
  */
-function readTar(buffer) {
+export function readTar(buffer) {
   const files = new Map();
   const decoder = new TextDecoder();
   const BLOCK = 512;
@@ -17,16 +18,27 @@ function readTar(buffer) {
   };
 
   for (let offset = 0; offset + BLOCK <= buffer.length; ) {
+    const header = buffer.subarray(offset, offset + BLOCK);
     const name = readString(offset, 100);
     if (name === '') break; // end-of-archive padding
 
+    verifyChecksum(header, name);
+
     const sizeField = readString(offset + 124, 12).trim();
     const size = sizeField === '' ? 0 : parseInt(sizeField, 8);
+    if (!Number.isSafeInteger(size) || size < 0 || !/^[0-7]*$/.test(sizeField)) {
+      throw new Error(`Corrupt tar size field '${sizeField}' for ${name}`);
+    }
+
     const typeFlag = readString(offset + 156, 1);
     const prefix = readString(offset + 345, 155);
     const path = prefix ? `${prefix}/${name}` : name;
 
     offset += BLOCK;
+    if (offset + size > buffer.length) {
+      throw new Error(`Truncated tar: ${path} declares ${size} bytes but the archive ends sooner`);
+    }
+
     if (typeFlag === '0' || typeFlag === '') {
       files.set(path, buffer.subarray(offset, offset + size));
     } else if (typeFlag !== '5') {
@@ -36,6 +48,21 @@ function readTar(buffer) {
   }
 
   return files;
+}
+
+/** The ustar header checksum: every other malformed field shows up here first. */
+function verifyChecksum(header, name) {
+  const declared = parseInt(new TextDecoder().decode(header.subarray(148, 156)).replace(/\0.*$/, '').trim(), 8);
+  let signed = 0;
+  let unsigned = 0;
+  for (let i = 0; i < 512; i++) {
+    const byte = i >= 148 && i < 156 ? 32 : header[i];
+    unsigned += byte;
+    signed += byte > 127 ? byte - 256 : byte;
+  }
+  if (declared !== unsigned && declared !== signed) {
+    throw new Error(`Corrupt tar header for ${name}: checksum ${declared} does not match ${unsigned}`);
+  }
 }
 
 async function download(url) {

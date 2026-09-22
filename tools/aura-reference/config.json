@@ -5,10 +5,35 @@
   "docs": {
     "branch": "v25.3",
     "commit": "452ccc574fd849bfb957c431674feff55373501c",
-    "pages": ["index", "color", "typography", "other", "app-layout"]
+    "pages": [
+      "index",
+      "color",
+      "typography",
+      "other",
+      "app-layout"
+    ]
   },
   "outputs": {
     "artifact": "tools/aura-reference/aura-properties.json",
     "reference": "skills/aura-theme/references/property-values.md"
-  }
+  },
+  "generatedBlocks": [
+    "source",
+    "accent-colors",
+    "neutral-colors",
+    "palette-colors",
+    "background-colors",
+    "default:--aura-contrast-level",
+    "default:--aura-surface-level",
+    "default:--aura-surface-opacity",
+    "default:--aura-overlay-surface-opacity",
+    "default:--aura-base-radius",
+    "radius-steps",
+    "default:--aura-base-size",
+    "default:--aura-base-font-size",
+    "default:--aura-font-family",
+    "default:--aura-app-layout-inset",
+    "customizable-properties",
+    "read-only-properties"
+  ]
 }

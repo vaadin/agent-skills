@@ -118,11 +118,19 @@ function buildBlock(id, context) {
       return colorTable(properties, id, PALETTE);
 
     case 'neutral-colors':
+      // The description column carries the docs' own "a dark gray"/"white"
+      // wording: the dependency list says where the value comes from, but not
+      // what it looks like, which is what a theme author is picturing.
       return table(
-        ['Property', 'Aura default', 'Write?'],
+        ['Property', 'Aura default', 'Write?', 'Notes'],
         ['--aura-neutral', '--aura-neutral-light', '--aura-neutral-dark'].map((name) => {
           const property = requireProperty(properties, name, id);
-          return [code(name), describeDefault(property), property.writable ? 'customizable' : 'read-only'];
+          return [
+            code(name),
+            describeDefault(property),
+            property.writable ? 'customizable' : 'read-only',
+            property.description || '—',
+          ];
         }),
       );
 

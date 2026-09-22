@@ -73,3 +73,79 @@ test('a property merely mentioned in prose is not classified', () => {
 
   assert.equal(properties.size, 0);
 });
+
+test('a badge that wrapped onto the next line of a table cell is still seen', () => {
+  const properties = parseDocumentedProperties(
+    page(
+      'color',
+      [
+        '|===',
+        '|`--aura-red` | `--aura-red-text`',
+        'xref:#light-dark-function[light-dark(),role="badge light-dark"]',
+        '|===',
+      ].join('\n'),
+    ),
+  );
+
+  assert.equal(properties.get('--aura-red-text').readOnly, true);
+  assert.equal(properties.get('--aura-red-text').lightDark, true);
+  assert.equal(properties.get('--aura-red').readOnly, false);
+});
+
+test('a later unbadged mention cannot downgrade a read-only property', () => {
+  const properties = parseDocumentedProperties(
+    page(
+      'color',
+      [
+        '`--aura-red-text` xref:#light-dark-function[light-dark(),role="badge light-dark"]::',
+        'Description.',
+        '',
+        '|===',
+        '|Example |`--aura-red-text`',
+        '|===',
+      ].join('\n'),
+    ),
+  );
+
+  assert.equal(properties.get('--aura-red-text').readOnly, true);
+});
+
+test('single-quoted role attributes carry the badge like double-quoted ones', () => {
+  const properties = parseDocumentedProperties(
+    page('color', "`--aura-red-text` xref:#light-dark-function[light-dark(),role='badge light-dark']::\nText."),
+  );
+
+  assert.equal(properties.get('--aura-red-text').readOnly, true);
+  assert.equal(properties.get('--aura-red-text').lightDark, true);
+});
+
+test('the docs own inline badge form is recognized', () => {
+  const properties = parseDocumentedProperties(page('other', '`--aura-surface-color` [badge]*Read-only*::\nText.'));
+  assert.equal(properties.get('--aura-surface-color').readOnly, true);
+});
+
+test('badge markup nobody taught the parser fails the run', () => {
+  assert.throws(
+    () => parseDocumentedProperties(page('other', '`--aura-surface-color` <span class="x">Read-only</span>::\nText.')),
+    /Unrecognized badge markup/,
+  );
+});
+
+test('content inside an asciidoc comment block is ignored', () => {
+  const properties = parseDocumentedProperties(
+    page(
+      'color',
+      [
+        '`--aura-red-text` xref:#light-dark-function[light-dark(),role="badge light-dark"]::',
+        'Description.',
+        '',
+        '////',
+        '`--aura-red-text`::',
+        'An old draft that dropped the badge.',
+        '////',
+      ].join('\n'),
+    ),
+  );
+
+  assert.equal(properties.get('--aura-red-text').readOnly, true);
+});

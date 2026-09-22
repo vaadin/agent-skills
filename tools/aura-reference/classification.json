@@ -1,9 +1,11 @@
 {
   "comment": [
-    "Write-safety classification for --aura-* properties that the Aura reference pages in vaadin/docs do not cover.",
-    "Everything documented is classified from the Read-only / light-dark() badges instead; see lib/parse-docs.mjs.",
-    "generate.mjs fails when this file names a property Aura no longer declares, or one the docs have since",
-    "documented, so it cannot quietly accumulate stale entries."
+    "Hand-curated gaps in what the two generated sources can say about --aura-* properties.",
+    "`properties` classifies the ones the Aura reference pages in vaadin/docs do not cover; everything",
+    "documented is classified from the Read-only / light-dark() badges instead (see lib/parse-docs.mjs).",
+    "`undeclared` lists documented properties that @vaadin/aura deliberately never declares, so that a",
+    "property vanishing from the CSS is reported instead of being read as an opt-in hook.",
+    "generate.mjs fails on any entry here that is no longer needed, so neither list can accumulate."
   ],
   "properties": {
     "--aura-accent-color-light-initial": {
@@ -25,6 +27,11 @@
     "--aura-item-overlay-padding-block": {
       "writable": false,
       "reason": "Undocumented internal property behind the padding and corner radius of overlay items. Not part of Aura's public API."
+    }
+  },
+  "undeclared": {
+    "--aura-font-smoothing": {
+      "reason": "An opt-in hook with no default: Aura only reads it, as var(--aura-font-smoothing, antialiased), so there is nothing for the CSS to declare."
     }
   }
 }

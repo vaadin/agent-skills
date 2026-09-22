@@ -107,3 +107,99 @@ test('a missing @import target fails loudly', () => {
     /missing src\/gone\.css/,
   );
 });
+
+test('a block-final declaration without a semicolon is not lost', () => {
+  const { defaults } = collectDeclarations(sheets({ 'aura.css': `:root { --aura-base-size: 18 }` }));
+  assert.equal(defaults.get('--aura-base-size').value, '18');
+});
+
+test('a semicolon inside an unquoted url() does not split the value', () => {
+  const { defaults } = collectDeclarations(
+    sheets({
+      'aura.css': `:root { --aura-x: url(data:image/png;base64,AAAA); --aura-base-size: 16; }`,
+    }),
+  );
+  assert.equal(defaults.get('--aura-x').value, 'url(data:image/png;base64,AAAA)');
+  assert.equal(defaults.get('--aura-base-size').value, '16');
+});
+
+test('an escaped quote does not end the string early', () => {
+  const { defaults } = collectDeclarations(
+    sheets({
+      'aura.css': String.raw`:root { --aura-font-family: "A\";B"; --aura-base-size: 16; }`,
+    }),
+  );
+  assert.equal(defaults.get('--aura-font-family').value, String.raw`"A\";B"`);
+  assert.equal(defaults.get('--aura-base-size').value, '16');
+});
+
+test('!important and selector specificity outrank document order', () => {
+  const important = collectDeclarations(
+    sheets({ 'aura.css': `:root { --aura-base-size: 18 !important; } :root { --aura-base-size: 16; }` }),
+  );
+  assert.equal(important.defaults.get('--aura-base-size').value, '18');
+
+  const specificity = collectDeclarations(
+    sheets({ 'aura.css': `:root { --aura-base-size: 18; } :where(:root) { --aura-base-size: 16; }` }),
+  );
+  assert.equal(specificity.defaults.get('--aura-base-size').value, '18');
+});
+
+test('@layer fails loudly rather than being silently flattened', () => {
+  assert.throws(
+    () => collectDeclarations(sheets({ 'aura.css': `@layer second { :root { --aura-base-size: 18; } }` })),
+    /@layer is not supported/,
+  );
+  assert.throws(
+    () => collectDeclarations(sheets({ 'aura.css': `@import './a.css' layer(theme);`, 'a.css': '' })),
+    /layer is not supported/,
+  );
+});
+
+test('a comma inside an attribute selector is not a selector boundary', () => {
+  const { defaults } = collectDeclarations(
+    sheets({ 'aura.css': `[data-name="a,:root,b"] { --aura-base-size: 18; }` }),
+  );
+  assert.equal(defaults.has('--aura-base-size'), false);
+});
+
+test('a bare nested & stays in root scope, a narrowing one does not', () => {
+  const nested = collectDeclarations(sheets({ 'aura.css': `:root { & { --aura-base-size: 18; } }` }));
+  assert.equal(nested.defaults.get('--aura-base-size').value, '18');
+
+  const narrowed = collectDeclarations(sheets({ 'aura.css': `:root { & vaadin-card { --aura-base-size: 18; } }` }));
+  assert.equal(narrowed.defaults.has('--aura-base-size'), false);
+});
+
+test('@scope targets root without being a condition, unlike @media', () => {
+  const scoped = collectDeclarations(sheets({ 'aura.css': `@scope (:root) { :scope { --aura-base-size: 18; } }` }));
+  assert.equal(scoped.defaults.get('--aura-base-size').value, '18');
+
+  const upperCase = collectDeclarations(
+    sheets({ 'aura.css': `@MEDIA (pointer: coarse) { :root { --aura-base-size: 18; } }` }),
+  );
+  assert.equal(upperCase.defaults.has('--aura-base-size'), false);
+});
+
+test('@import inside a comment is not followed, and cycles fail loudly', () => {
+  const { defaults } = collectDeclarations(
+    sheets({ 'aura.css': `/* @import './ghost.css'; */ :root { --aura-base-size: 16; }` }),
+  );
+  assert.equal(defaults.get('--aura-base-size').value, '16');
+
+  assert.throws(
+    () => collectDeclarations(sheets({ 'aura.css': `@import './a.css';`, 'a.css': `@import './aura.css';` })),
+    /Circular @import/,
+  );
+});
+
+test('a sheet imported twice is applied twice, as the cascade would', () => {
+  const { defaults } = collectDeclarations(
+    sheets({
+      'aura.css': `@import './a.css'; @import './b.css'; @import './a.css';`,
+      'a.css': `:where(:root) { --aura-base-size: 18; }`,
+      'b.css': `:where(:root) { --aura-base-size: 16; }`,
+    }),
+  );
+  assert.equal(defaults.get('--aura-base-size').value, '18');
+});

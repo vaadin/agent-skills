@@ -29,10 +29,15 @@ Those are this skill's design choices, not Aura defaults. **Only the defaults ar
 
 **Defaults** come from the package's CSS. `generate.mjs` downloads the pinned tarball from
 `registry.npmjs.org`, follows the `@import` graph from `aura.css` in cascade order, and keeps
-the last value each property is given in root scope outside any `@media`/`@supports`/
-`@container` condition. Component-scoped declarations (`vaadin-card { --aura-surface-level: 2 }`)
-and conditional ones (`@media (pointer: coarse) { --aura-base-size: 18 }`) are deliberately
+the value each property resolves to in root scope outside any `@media`/`@supports`/`@container`
+condition. Component-scoped declarations (`vaadin-card { --aura-surface-level: 2 }`) and
+conditional ones (`@media (pointer: coarse) { --aura-base-size: 18 }`) are deliberately
 excluded — neither is the theme default.
+
+`lib/parse-css.mjs` is not a general CSS engine. It resolves competing root declarations by
+`!important`, then a coarse specificity split (`:where(…)` contributes nothing, a bare `:root`
+does), then document order — enough for how a theme declares its defaults. What it cannot
+resolve, it refuses: `@layer` throws rather than being silently flattened.
 
 **Write-safety** comes from the Aura reference pages in `vaadin/docs`, which mark read-only
 properties with a `Read-only` or `light-dark()` badge. This is not derivable from the CSS:
@@ -42,9 +47,31 @@ are exactly the documented way to customize the theme. `computed` and `writable`
 separate fields in the artifact, and a generator that conflated them would tell the model to
 avoid the properties it most needs.
 
-`classification.json` covers the handful of properties the docs do not mention. The generator
-fails if a property is classified by neither source, and fails again if an entry in
-`classification.json` becomes stale — so the hand-curated part cannot quietly grow.
+Read-only silently becoming customizable is the dangerous direction — it would tell the model
+it may overwrite a property Aura computes — so `lib/parse-docs.mjs` guards it three ways: badge
+markup is recognized in every form these docs use (including a badge that wrapped onto the next
+line of a table cell), a classification is only ever raised and never lowered by a later
+mention, and text that reads like an unrecognized badge fails the run instead of being taken
+for "no badge".
+
+`classification.json` covers what the two sources cannot say: `properties` classifies the five
+`--aura-*` properties the docs do not mention, and `undeclared` names the one documented
+property Aura deliberately never declares, so that a property vanishing from the CSS is
+reported rather than read as an opt-in hook.
+
+## Guards
+
+Every one of these fails the run rather than producing a plausible-looking artifact:
+
+| Condition | Why it matters |
+|---|---|
+| A property is classified by neither the docs nor `classification.json` | Its write-safety is unknown |
+| An entry in `classification.json` is no longer needed | The hand-curated part cannot quietly grow |
+| A documented property has no declaration and is not in `undeclared` | Aura dropped it, or the scanner failed to read it |
+| A `<!-- BEGIN/END GENERATED … -->` marker is removed or misspelled | That table silently reverts to hand-maintained |
+| A generated block names a property Aura no longer ships | The reference would state a value that does not exist |
+| The docs use badge markup the parser does not know | Read-only properties would be reported as customizable |
+| `@layer`, a corrupt tar header, or a truncated archive | The inputs cannot be trusted to state Aura's defaults |
 
 ## Colors
 
@@ -73,5 +100,8 @@ Review the diff. Two things worth checking by hand when it is not empty:
   generated — evaluating `min(0.25lh, round(…))` needs a CSS engine. If the generated
   `radius-steps` block changes, re-measure that table.
 - New properties surface as a hard failure rather than a silent omission, which is the point.
+
+Adding or removing a generated block in `property-values.md` means updating `generatedBlocks`
+in `config.json` — that list is what makes marker damage detectable.
 
 The artifact has no timestamp, so regenerating without a version change produces no diff.

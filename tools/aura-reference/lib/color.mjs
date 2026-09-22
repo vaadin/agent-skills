@@ -14,10 +14,11 @@ const EPSILON = 1e-6;
 const UNRESOLVABLE = /\b(?:var|calc|light-dark|color-mix|from)\b|\bfrom\s/;
 
 function parseAngle(token) {
-  const match = /^(-?[\d.]+)(deg|rad|grad|turn)?$/.exec(token);
+  const match = /^(-?[\d.]+)(deg|rad|grad|turn)?$/i.exec(token);
   if (!match) return null;
   const value = Number(match[1]);
-  switch (match[2]) {
+  if (!Number.isFinite(value)) return null; // "." matches the pattern but is not a number
+  switch (match[2]?.toLowerCase()) {
     case 'rad':
       return (value * 180) / Math.PI;
     case 'grad':
@@ -27,6 +28,18 @@ function parseAngle(token) {
     default:
       return value;
   }
+}
+
+/**
+ * Splits a color function's arguments. CSS allows either all-comma or all-space
+ * separators; anything else — `rgb(1,,2,3)` — is invalid and must not be
+ * quietly normalized into three components.
+ */
+function splitComponents(text) {
+  const parts = text.includes(',') ? text.split(',') : text.split(/\s+/);
+  if (parts.length !== 3) return null;
+  const trimmed = parts.map((part) => part.trim());
+  return trimmed.some((part) => part === '' || /\s/.test(part)) ? null : trimmed;
 }
 
 function parseNumber(token, percentageScale) {
@@ -80,14 +93,16 @@ export function resolveColor(value) {
 
   const oklch = /^oklch\(\s*([^/)]+?)\s*\)$/i.exec(input);
   if (oklch) {
-    const tokens = oklch[1].split(/[\s,]+/);
-    if (tokens.length !== 3) return null;
+    const tokens = splitComponents(oklch[1]);
+    if (!tokens) return null;
     const lightness = parseNumber(tokens[0], 1);
     const chroma = parseNumber(tokens[1], 0.4);
     const hue = parseAngle(tokens[2]);
     if (lightness === null || chroma === null || hue === null) return null;
 
-    const linear = oklchToLinearSrgb(lightness, chroma, hue);
+    // CSS clamps both to their valid range at parse time, before conversion;
+    // clipping the resulting RGB channels cannot undo an out-of-range input.
+    const linear = oklchToLinearSrgb(Math.min(1, Math.max(0, lightness)), Math.max(0, chroma), hue);
     return {
       hex: toHex(linear.map(encodeChannel)),
       inSrgbGamut: linear.every((c) => c >= -EPSILON && c <= 1 + EPSILON),
@@ -96,8 +111,8 @@ export function resolveColor(value) {
 
   const rgb = /^rgba?\(\s*([^/)]+?)\s*\)$/i.exec(input);
   if (rgb) {
-    const tokens = rgb[1].split(/[\s,]+/);
-    if (tokens.length !== 3) return null;
+    const tokens = splitComponents(rgb[1]);
+    if (!tokens) return null;
     const channels = tokens.map((token) => parseNumber(token, 255));
     if (channels.some((c) => c === null)) return null;
     return {
