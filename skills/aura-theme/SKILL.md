@@ -165,6 +165,7 @@ vaadin-dashboard-widget {
 | set grid row backgrounds or stripes | Grid row properties (`--vaadin-grid-row-background-color`, `--vaadin-grid-row-odd-background-color`) |
 
 **Important considerations:**
+- **Read-only properties:** Never set a property listed under *Read-only* in the reference's Property Index. Aura computes those, and overriding one breaks the color-scheme or contrast behavior it exists to provide — set the properties named alongside it instead.
 - **Border radius:** `--aura-base-radius` scales three derived steps rather than setting a radius directly. `--vaadin-radius-s` is clamped at `0.25lh`, so buttons and inputs stop changing above base `3` — raising it affects cards and dialogs only, and no base value yields square corners. For "square", set `--vaadin-radius-s/m/l: 0` directly (see reference).
 - **Colorful backgrounds:** When the user wants a vibrant/colorful UI, use the Accent background option with oklch formulas (see reference) instead of named backgrounds.
 - **Color palette adjustment:** Adjust palette colors (`--aura-red`, `--aura-green`, etc.) to match the overall style (muted, bright, brand-specific). Keep color hues consistent (red stays red-ish, green stays green-ish) but adjust tone/saturation. Text colors are automatically derived.

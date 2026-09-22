@@ -14,8 +14,15 @@
 - [Font Size](#font-size)
 - [Font Family](#font-family)
 - [App Layout Inset](#app-layout-inset)
+- [Property Index](#property-index)
 
 **Component-specific styling:** See [components.md](components.md)
+
+<!-- BEGIN GENERATED source -->
+Property defaults below are generated from `@vaadin/aura@25.3.0-rc1`;
+read-only classification from `vaadin/docs` `v25.3` (`452ccc5`).
+Regenerate with `node tools/aura-reference/generate.mjs`.
+<!-- END GENERATED source -->
 
 ---
 
@@ -49,11 +56,17 @@ Only set these when they differ from the global `color-scheme`.
 
 Two properties — one for light scheme, one for dark scheme.
 
+<!-- BEGIN GENERATED accent-colors -->
+| Property | Aura default | sRGB (as rendered) |
+|---|---|---|
+| `--aura-accent-color-light` | `var(--aura-blue)` | `#3266E4` |
+| `--aura-accent-color-dark` | `var(--aura-blue)` | `#3266E4` |
+<!-- END GENERATED accent-colors -->
+
 ### Light Accent Colors (for light backgrounds — need sufficient contrast)
 
 | Name | Hex |
 |---|---|
-| Default | `#3266e4` |
 | Neutral | `#222222` |
 | Red | `#e7000b` |
 | Orange | `#ca3500` |
@@ -77,7 +90,6 @@ Two properties — one for light scheme, one for dark scheme.
 
 | Name | Hex |
 |---|---|
-| Default | `#3266e4` |
 | Neutral | `#eeeeee` |
 | Red | `#F87171` |
 | Orange | `#FB923C` |
@@ -97,7 +109,7 @@ Two properties — one for light scheme, one for dark scheme.
 | Pink | `#F472B6` |
 | Rose | `#FB7185` |
 
-Light and dark accent colors are **always paired by hue** (e.g., Emerald light `#009966` with Emerald dark `#34D399`). The dark variant is a lighter/more vibrant version of the same hue to provide contrast on dark backgrounds.
+The tables above are this skill's curated presets, not Aura defaults. Light and dark accent colors are **always paired by hue** (e.g., Emerald light `#009966` with Emerald dark `#34D399`). The dark variant is a lighter/more vibrant version of the same hue to provide contrast on dark backgrounds.
 
 Custom hex values are allowed when the user explicitly requests a specific brand color.
 
@@ -109,38 +121,34 @@ Aura provides a customizable color palette consisting of neutral (grayscale) and
 
 ### Neutral Color (Grayscale)
 
-The neutral color forms the basis of text and border colors.
+The neutral color forms the basis of text and border colors. Aura derives it from the background color, so it has no fixed hex default.
 
-- `--aura-neutral` — Adapts to the color scheme (read-only, use specific variants below)
-- `--aura-neutral-light` — Dark gray for light mode (default: dark gray ~#222)
-- `--aura-neutral-dark` — Off-white for dark mode (default: off-white ~#eee)
+<!-- BEGIN GENERATED neutral-colors -->
+| Property | Aura default | Write? |
+|---|---|---|
+| `--aura-neutral` | computed from `--aura-neutral-light`, `--aura-neutral-dark` | read-only |
+| `--aura-neutral-light` | computed from `--aura-background-color-light`, `--aura-contrast-level` | customizable |
+| `--aura-neutral-dark` | computed from `--aura-background-color-dark`, `--aura-contrast-level` | customizable |
+<!-- END GENERATED neutral-colors -->
 
 ### Saturated Colors
 
 These palette colors are used for semantic purposes (success, error, warning, info) and visual accents throughout the UI.
 
-**Properties:**
-- `--aura-red`
-- `--aura-orange`
-- `--aura-yellow`
-- `--aura-green`
-- `--aura-blue`
-- `--aura-purple`
-
-**Default values** — these are the exact declarations shipped in `@vaadin/aura` (`src/palette.css`):
-
+<!-- BEGIN GENERATED palette-colors -->
 | Property | Aura default | sRGB (as rendered) |
 |---|---|---|
 | `--aura-red` | `oklch(0.59 0.2 25)` | `#DB373A` |
-| `--aura-orange` | `oklch(0.61 0.35 87)` | `#D95A00` * |
-| `--aura-yellow` | `oklch(0.89 0.3 98)` | `#FFD400` * |
-| `--aura-green` | `oklch(0.6 0.2 155)` | `#00A045` * |
+| `--aura-orange` | `oklch(0.61 0.35 87)` | `#D95A00` \* |
+| `--aura-yellow` | `oklch(0.89 0.3 98)` | `#FFD400` \* |
+| `--aura-green` | `oklch(0.6 0.2 155)` | `#00A045` \* |
 | `--aura-blue` | `oklch(0.55 0.2 264)` | `#3266E4` |
 | `--aura-purple` | `oklch(0.58 0.22 290)` | `#7E55F0` |
 
-Compare against the `oklch()` values when deciding whether an override is needed — that is what actually ships. The hex column is a reader aid only.
+\* Outside the sRGB gamut. The hex is what browsers paint on an sRGB display; on a wide-gamut display these render more saturated.
+<!-- END GENERATED palette-colors -->
 
-\* Orange, yellow, and green are outside the sRGB gamut, so their hex is what browsers currently paint on an sRGB display; on a wide-gamut display they render more saturated.
+Compare against the `oklch()` values when deciding whether an override is needed — that is what actually ships. The hex column is a reader aid only.
 
 ### Text Colors
 
@@ -165,11 +173,19 @@ These text colors are computed to have sufficient contrast against the backgroun
 
 ## Background Color
 
+<!-- BEGIN GENERATED background-colors -->
+| Property | Aura default | sRGB (as rendered) |
+|---|---|---|
+| `--aura-background-color-light` | `oklch(0.95 0.005 248)` | `#ECEFF2` |
+| `--aura-background-color-dark` | `oklch(0.2 0.01 260)` | `#13161B` |
+<!-- END GENERATED background-colors -->
+
+The named options below are this skill's curated presets, not Aura defaults.
+
 ### Light Background Colors
 
-| Name | Value |
+| Name | Hex |
 |---|---|
-| Default | `oklch(0.95 0.005 248)` — `#ECEFF2` |
 | White | `#ffffff` |
 | Slate | `#f1f5f9` |
 | Gray | `#e5e7eb` |
@@ -184,9 +200,8 @@ These text colors are computed to have sufficient contrast against the backgroun
 
 ### Dark Background Colors
 
-| Name | Value |
+| Name | Hex |
 |---|---|
-| Default | `oklch(0.2 0.01 260)` — `#13161B` |
 | Black | `#000000` |
 | Slate | `#131822` |
 | Gray | `#15181f` |
@@ -200,8 +215,6 @@ These text colors are computed to have sufficient contrast against the backgroun
 | Accent | `oklch(from var(--aura-accent-color-dark) 0.18 calc(c * 0.3) h)` |
 
 Light and dark backgrounds are **always paired by name** (e.g., Zinc light with Zinc dark).
-
-The **Default** rows are Aura's own shipped values (`src/color.css`) — omit them. The named options below them are curated presets, not Aura defaults.
 
 **Accent Background:**
 The "Accent" background option creates a colorful background tinted with the accent color using oklch color functions. This produces a vibrant, saturated look where the entire UI is infused with the accent hue.
@@ -217,10 +230,14 @@ Use this when the user requests a **colorful, vibrant, or saturated** visual the
 
 Property: `--aura-contrast-level`
 
+<!-- BEGIN GENERATED default:--aura-contrast-level -->
+Aura default: `1`
+<!-- END GENERATED default:--aura-contrast-level -->
+
 | Label | Value |
 |---|---|
 | Low | `0.25` |
-| Mid (default) | `1` |
+| Mid | `1` |
 | High | `2` |
 
 Affects computed text and border color contrast. Use these exact values.
@@ -231,10 +248,14 @@ Affects computed text and border color contrast. Use these exact values.
 
 Property: `--aura-surface-level`
 
+<!-- BEGIN GENERATED default:--aura-surface-level -->
+Aura default: `1`
+<!-- END GENERATED default:--aura-surface-level -->
+
 | Label | Value |
 |---|---|
 | Low | `-0.5` |
-| Mid (default) | `1` |
+| Mid | `1` |
 | High | `2` |
 
 Controls surface "elevation" of built-in components. Surface colors create visual hierarchy — lighter colors imply more elevation (closer to the user). In light mode, levels 3–4 result in white. In dark mode, level 8+ may cause contrast issues.
@@ -247,9 +268,13 @@ Use these exact values.
 
 Property: `--aura-surface-opacity`
 
+<!-- BEGIN GENERATED default:--aura-surface-opacity -->
+Aura default: `0.5`
+<!-- END GENERATED default:--aura-surface-opacity -->
+
 | Value | Description |
 |---|---|
-| `0.5` | Default — semi-transparent surfaces that can layer |
+| `0.5` | Semi-transparent surfaces that can layer |
 | `1` | Opaque surfaces |
 
 Transparency allows nesting the same surface color to create more sense of elevation. Only set when choosing opaque surfaces.
@@ -260,12 +285,16 @@ Transparency allows nesting the same surface color to create more sense of eleva
 
 Property: `--aura-overlay-surface-opacity`
 
+<!-- BEGIN GENERATED default:--aura-overlay-surface-opacity -->
+Aura default: `0.85`
+<!-- END GENERATED default:--aura-overlay-surface-opacity -->
+
 | Label | Value |
 |---|---|
-| Translucent (default) | `0.85` |
+| Translucent | `0.85` |
 | Opaque | `1` |
 
-Only set when choosing Opaque. Translucent is the default, so omit it.
+Only set when choosing Opaque.
 
 ---
 
@@ -273,11 +302,15 @@ Only set when choosing Opaque. Translucent is the default, so omit it.
 
 Property: `--aura-base-radius`
 
+<!-- BEGIN GENERATED default:--aura-base-radius -->
+Aura default: `3`
+<!-- END GENERATED default:--aura-base-radius -->
+
 | Shape | Value |
 |---|---|
 | Minimal | `-1` |
 | Subtle | `0` |
-| Default | `3` |
+| Standard | `3` |
 | Rounded | `4` |
 | Very rounded (large surfaces only) | `7` |
 
@@ -285,11 +318,13 @@ Unitless number. Use these exact values.
 
 **`--aura-base-radius` does not set a radius directly** — it feeds three derived steps:
 
+<!-- BEGIN GENERATED radius-steps -->
 ```css
 --vaadin-radius-s: min(0.25lh, round(var(--aura-base-radius) * 1px + 2px, 1px));
 --vaadin-radius-m: round(var(--aura-base-radius) * 2px + 3px, 1px);
 --vaadin-radius-l: round(var(--aura-base-radius) * 1.5px + 10px, 1px);
 ```
+<!-- END GENERATED radius-steps -->
 
 Resulting values at Aura's default line height of 20px:
 
@@ -297,7 +332,7 @@ Resulting values at Aura's default line height of 20px:
 |---|---|---|---|
 | `-1` | 1px | 1px | 9px |
 | `0` | 2px | 3px | 10px |
-| `3` (default) | 5px | 9px | 15px |
+| `3` | 5px | 9px | 15px |
 | `4` | 5px | 11px | 16px |
 | `7` | 5px | 17px | 21px |
 
@@ -321,10 +356,14 @@ Two consequences worth knowing:
 
 Property: `--aura-base-size`
 
+<!-- BEGIN GENERATED default:--aura-base-size -->
+Aura default: `16`
+<!-- END GENERATED default:--aura-base-size -->
+
 | Label | Value |
 |---|---|
 | S (compact) | `12` |
-| M (default) | `16` |
+| M | `16` |
 | L (spacious) | `20` |
 
 Unitless number. Controls gap and padding. Use these exact values.
@@ -335,10 +374,14 @@ Unitless number. Controls gap and padding. Use these exact values.
 
 Property: `--aura-base-font-size`
 
+<!-- BEGIN GENERATED default:--aura-base-font-size -->
+Aura default: `14`
+<!-- END GENERATED default:--aura-base-font-size -->
+
 | Label | Value |
 |---|---|
 | XS | `13` |
-| S (default) | `14` |
+| S | `14` |
 | M | `15` |
 | L | `16` |
 
@@ -349,6 +392,10 @@ Unitless number representing base font size in px. Use these exact values.
 ## Font Family
 
 Property: `--aura-font-family`
+
+<!-- BEGIN GENERATED default:--aura-font-family -->
+Aura default: `var(--aura-font-family-instrument-sans)`
+<!-- END GENERATED default:--aura-font-family -->
 
 Format: `'Font Name', var(--aura-font-family-system)`
 
@@ -379,7 +426,7 @@ html {
 }
 ```
 
-When no font is specified, omit the property entirely (defaults to Instrument Sans).
+When no font is specified, omit the property entirely.
 
 ---
 
@@ -387,9 +434,115 @@ When no font is specified, omit the property entirely (defaults to Instrument Sa
 
 Property: `--aura-app-layout-inset`
 
+<!-- BEGIN GENERATED default:--aura-app-layout-inset -->
+Aura default: `1.5vmin`
+<!-- END GENERATED default:--aura-app-layout-inset -->
+
 | Label | Value |
 |---|---|
 | Off | `0px` |
-| On (default) | `1.5vmin` |
+| On | `1.5vmin` |
 
 **Must include a unit**, even for zero (`0px` not `0`).
+
+---
+
+## Property Index
+
+Every `--aura-*` property Aura declares, and whether it is meant to be written.
+
+### Customizable
+
+Safe to set. Several have computed defaults — that is how Aura derives light/dark
+and contrast-aware values — but setting them is the documented way to customize the theme.
+
+<!-- BEGIN GENERATED customizable-properties -->
+| Property | Default |
+|---|---|
+| `--aura-accent-color-dark` | `var(--aura-blue)` |
+| `--aura-accent-color-light` | `var(--aura-blue)` |
+| `--aura-accent-contrast-color-dark` | computed from `--aura-accent-color-dark` |
+| `--aura-accent-contrast-color-light` | computed from `--aura-accent-color-light` |
+| `--aura-accent-text-color-dark` | computed from `--aura-accent-color-dark`, `--aura-contrast-level` |
+| `--aura-accent-text-color-light` | computed from `--aura-accent-color-light`, `--aura-contrast-level` |
+| `--aura-app-layout-border-width` | `1px` |
+| `--aura-app-layout-inset` | `1.5vmin` |
+| `--aura-app-layout-radius` | `var(--vaadin-radius-l)` |
+| `--aura-background-color-dark` | `oklch(0.2 0.01 260)` |
+| `--aura-background-color-light` | `oklch(0.95 0.005 248)` |
+| `--aura-base-font-size` | `14` |
+| `--aura-base-line-height` | `1.4` |
+| `--aura-base-radius` | `3` |
+| `--aura-base-size` | `16` |
+| `--aura-blue` | `oklch(0.55 0.2 264)` |
+| `--aura-content-color-scheme` | `inherit` |
+| `--aura-contrast-level` | `1` |
+| `--aura-font-family` | `var(--aura-font-family-instrument-sans)` |
+| `--aura-font-smoothing` | not set (opt-in) |
+| `--aura-font-weight-medium` | `500` |
+| `--aura-font-weight-regular` | `400` |
+| `--aura-font-weight-semibold` | `600` |
+| `--aura-green` | `oklch(0.6 0.2 155)` |
+| `--aura-neutral-dark` | computed from `--aura-background-color-dark`, `--aura-contrast-level` |
+| `--aura-neutral-light` | computed from `--aura-background-color-light`, `--aura-contrast-level` |
+| `--aura-notification-color-scheme` | `inherit` |
+| `--aura-orange` | `oklch(0.61 0.35 87)` |
+| `--aura-overlay-backdrop-filter` | `blur(20px) brightness(1.1) saturate(1.2)` |
+| `--aura-overlay-inner-outline-color` | computed from `--aura-contrast-level` |
+| `--aura-overlay-outline-color` | computed from `--aura-background-color-light`, `--aura-contrast-level`, `--aura-background-color-dark` |
+| `--aura-overlay-shadow` | `var(--aura-shadow-m)` |
+| `--aura-overlay-surface-opacity` | `0.85` |
+| `--aura-purple` | `oklch(0.58 0.22 290)` |
+| `--aura-red` | `oklch(0.59 0.2 25)` |
+| `--aura-shadow-color` | computed from `--aura-background-color-light`, `--aura-background-color-dark` |
+| `--aura-shadow-m` | `0 8px 16px -3px var(--aura-shadow-color)` |
+| `--aura-shadow-s` | `0 2px 5px -1px var(--aura-shadow-color)` |
+| `--aura-shadow-xs` | `0 1px 4px -2px var(--aura-shadow-color)` |
+| `--aura-surface-level` | `1` |
+| `--aura-surface-opacity` | `0.5` |
+| `--aura-yellow` | `oklch(0.89 0.3 98)` |
+<!-- END GENERATED customizable-properties -->
+
+### Read-only — never set these
+
+Aura computes these for you, and overriding one breaks the color-scheme or
+contrast behavior it exists to provide. To change what they resolve to, set the
+properties in the right-hand column instead.
+
+<!-- BEGIN GENERATED read-only-properties -->
+| Property | Set these instead |
+|---|---|
+| `--aura-accent-border-color` | `--aura-surface-level`, `--aura-contrast-level`, `--aura-accent-color-light`, `--aura-accent-color-dark`, `--aura-background-color-light`, `--aura-background-color-dark` |
+| `--aura-accent-color` | `--aura-accent-color-light`, `--aura-accent-color-dark` |
+| `--aura-accent-color-dark-initial` | `--aura-accent-color-dark` |
+| `--aura-accent-color-light-initial` | `--aura-accent-color-light` |
+| `--aura-accent-contrast-color` | `--aura-accent-contrast-color-light`, `--aura-accent-contrast-color-dark` |
+| `--aura-accent-surface` | `--aura-accent-color-light`, `--aura-surface-level`, `--aura-surface-opacity`, `--aura-accent-color-dark`, `--aura-background-color-light`, `--aura-background-color-dark` |
+| `--aura-accent-text-color` | `--aura-accent-text-color-light`, `--aura-accent-text-color-dark` |
+| `--aura-app-background` | `--aura-background-color-light`, `--aura-background-color-dark` |
+| `--aura-background-color` | `--aura-background-color-light`, `--aura-background-color-dark` |
+| `--aura-blue-text` | `--aura-blue`, `--aura-contrast-level` |
+| `--aura-font-family-instrument-sans` | — |
+| `--aura-font-family-system` | — |
+| `--aura-font-size-l` | `--aura-base-font-size` |
+| `--aura-font-size-m` | `--aura-base-font-size` |
+| `--aura-font-size-s` | `--aura-base-font-size` |
+| `--aura-font-size-xl` | `--aura-base-font-size` |
+| `--aura-font-size-xs` | `--aura-base-font-size` |
+| `--aura-green-text` | `--aura-green`, `--aura-contrast-level` |
+| `--aura-item-overlay-padding-block` | `--aura-base-size` |
+| `--aura-item-overlay-padding-inline` | `--aura-base-size` |
+| `--aura-line-height-l` | `--aura-base-line-height`, `--aura-base-font-size` |
+| `--aura-line-height-m` | `--aura-base-line-height`, `--aura-base-font-size` |
+| `--aura-line-height-s` | `--aura-base-line-height`, `--aura-base-font-size` |
+| `--aura-line-height-xl` | `--aura-base-line-height`, `--aura-base-font-size` |
+| `--aura-line-height-xs` | `--aura-base-line-height`, `--aura-base-font-size` |
+| `--aura-neutral` | `--aura-neutral-light`, `--aura-neutral-dark` |
+| `--aura-orange-text` | `--aura-orange`, `--aura-contrast-level` |
+| `--aura-overlay-outline-shadow` | `--aura-overlay-inner-outline-color`, `--aura-overlay-outline-color` |
+| `--aura-purple-text` | `--aura-purple`, `--aura-contrast-level` |
+| `--aura-red-text` | `--aura-red`, `--aura-contrast-level` |
+| `--aura-surface-color` | `--aura-surface-opacity`, `--aura-background-color-light`, `--aura-surface-level`, `--aura-background-color-dark` |
+| `--aura-surface-color-solid` | `--aura-background-color-light`, `--aura-surface-level`, `--aura-background-color-dark` |
+| `--aura-yellow-text` | `--aura-yellow`, `--aura-contrast-level` |
+<!-- END GENERATED read-only-properties -->

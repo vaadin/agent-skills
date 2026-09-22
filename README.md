@@ -16,6 +16,7 @@ It includes:
 - `.claude-plugin/plugin.json` for Claude plugin metadata
 - `.mcp.json` for the Vaadin MCP server configuration
 - `skills/` for the shared skill definitions
+- `tools/` for the scripts that generate parts of those skills from upstream sources
 
 For Claude users, the older [`vaadin/claude-plugin`](https://github.com/vaadin/claude-plugin) repository is kept as a marketplace that points back to this source-of-truth repository.
 
@@ -134,9 +135,18 @@ skills/
     SKILL.md
     references/
       property-values.md
+tools/
+  aura-reference/
+    generate.mjs
+    aura-properties.json
 ```
 
 `SKILL.md` contains the skill front matter and primary instructions. The optional `references/` directory contains deeper supporting material that agents can load only when needed.
+
+Parts of `skills/aura-theme/references/property-values.md` are generated from the published
+`@vaadin/aura` package rather than hand-maintained — the blocks between `<!-- BEGIN GENERATED -->`
+and `<!-- END GENERATED -->` markers. Edit those through the generator, not by hand; see
+[`tools/aura-reference/README.md`](tools/aura-reference/README.md).
 
 ## Updating Skills
 
@@ -162,3 +172,7 @@ When adding a new skill:
 4. Put longer examples and supporting documents in `skills/<skill-name>/references/`.
 5. Update the skill list in this README.
 6. Update the skill list in `.claude-plugin/plugin.json`.
+
+When changing `skills/aura-theme/references/property-values.md`, run
+`node tools/aura-reference/generate.mjs` and commit the result — CI fails if the generated
+blocks are out of date.

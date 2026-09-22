@@ -1,0 +1,30 @@
+{
+  "comment": [
+    "Write-safety classification for --aura-* properties that the Aura reference pages in vaadin/docs do not cover.",
+    "Everything documented is classified from the Read-only / light-dark() badges instead; see lib/parse-docs.mjs.",
+    "generate.mjs fails when this file names a property Aura no longer declares, or one the docs have since",
+    "documented, so it cannot quietly accumulate stale entries."
+  ],
+  "properties": {
+    "--aura-accent-color-light-initial": {
+      "writable": false,
+      "reason": "Snapshot of the application-level accent color. Aura reads it to restore the accent inside scoped accent contexts (.aura-accent-* class names), so overriding it detaches those contexts from the theme."
+    },
+    "--aura-accent-color-dark-initial": {
+      "writable": false,
+      "reason": "Snapshot of the application-level accent color. Aura reads it to restore the accent inside scoped accent contexts (.aura-accent-* class names), so overriding it detaches those contexts from the theme."
+    },
+    "--aura-overlay-outline-shadow": {
+      "writable": false,
+      "reason": "Assembles the two overlay outline colors into a box-shadow. Set --aura-overlay-outline-color and --aura-overlay-inner-outline-color instead."
+    },
+    "--aura-item-overlay-padding-inline": {
+      "writable": false,
+      "reason": "Undocumented internal property behind the padding and corner radius of overlay items. Not part of Aura's public API."
+    },
+    "--aura-item-overlay-padding-block": {
+      "writable": false,
+      "reason": "Undocumented internal property behind the padding and corner radius of overlay items. Not part of Aura's public API."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "aura": {
+    "version": "25.3.0-rc1"
+  },
+  "docs": {
+    "branch": "v25.3",
+    "commit": "452ccc574fd849bfb957c431674feff55373501c",
+    "pages": ["index", "color", "typography", "other", "app-layout"]
+  },
+  "outputs": {
+    "artifact": "tools/aura-reference/aura-properties.json",
+    "reference": "skills/aura-theme/references/property-values.md"
+  }
+}
