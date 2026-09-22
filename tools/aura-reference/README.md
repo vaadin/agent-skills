@@ -35,11 +35,13 @@ conditional ones (`@media (pointer: coarse) { --aura-base-size: 18 }`) are delib
 excluded — neither is the theme default.
 
 `lib/parse-css.mjs` is not a general CSS engine. It resolves competing root declarations by
-`!important`, then `@scope` proximity, then the specificity of the selector that matches root —
-only the root-matching parts of a list count, so `:where(:root), vaadin-button` stays a
-zero-specificity root declaration — then document order. What it cannot resolve, it refuses:
-`@layer` and a qualified `@import` (`layer`, `supports()`, a media query) throw rather than
-being flattened into an unconditional default.
+`!important`, then the specificity of the selector that matches root — only the root-matching
+parts of a list count, so `:where(:root), vaadin-button` stays a zero-specificity root
+declaration — then document order. What it cannot resolve, it refuses: `@layer`, a qualified
+`@import` (`layer`, `supports()`, a media query), and a root default declared inside `@scope`
+all throw rather than being flattened into a value that might be wrong. Ordering that last one
+would need scoping proximity, which is a distance to a scope root rather than anything visible
+in the source.
 
 **Write-safety** comes from the Aura reference pages in `vaadin/docs`, which mark read-only
 properties with a `Read-only` or `light-dark()` badge. This is not derivable from the CSS:
@@ -50,11 +52,14 @@ separate fields in the artifact, and a generator that conflated them would tell 
 avoid the properties it most needs.
 
 Read-only silently becoming customizable is the dangerous direction — it would tell the model
-it may overwrite a property Aura computes — so `lib/parse-docs.mjs` guards it three ways: badge
+it may overwrite a property Aura computes — so `lib/parse-docs.mjs` guards it four ways: badge
 markup is recognized in every form these docs use (including a badge that wrapped onto the next
 line of a table cell), a classification is only ever raised and never lowered by a later
-mention, and text that reads like an unrecognized badge fails the run instead of being taken
-for "no badge".
+mention, a label set off by delimiters where no known badge matched fails the run rather than
+being taken for "no badge", and `docs.expectedReadOnly` pins how many properties carry a badge
+at the pinned commit. That last one is the backstop the others cannot be: reading badges out of
+prose only ever recognizes the markup it knows, so if the docs move to a form the parser cannot
+see, the count drops and the run stops.
 
 `classification.json` covers what the two sources cannot say: `properties` classifies the five
 `--aura-*` properties the docs do not mention, and `undeclared` names the one documented
@@ -73,7 +78,8 @@ Every one of these fails the run rather than producing a plausible-looking artif
 | A `<!-- BEGIN/END GENERATED … -->` marker is removed or misspelled | That table silently reverts to hand-maintained |
 | A generated block names a property Aura no longer ships | The reference would state a value that does not exist |
 | The docs use badge markup the parser does not know | Read-only properties would be reported as customizable |
-| A `@layer` or a conditional `@import` | Their declarations are not unconditional root defaults |
+| A `@layer`, a qualified `@import`, or a scoped root default | Ordering them needs cascade rules this tool does not implement |
+| Fewer properties carry a read-only badge than `docs.expectedReadOnly` | Badge markup the parser cannot see reads as "customizable" |
 | A corrupt tar header, checksum or truncated archive | The inputs cannot be trusted to state Aura's defaults |
 
 ## Colors

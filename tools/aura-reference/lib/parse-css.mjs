@@ -6,8 +6,8 @@
  * This is not a general CSS engine. It resolves the cascade far enough for a
  * theme's root declarations — `!important`, the specificity of the selector
  * that matches root, and document order — and throws on constructs it cannot
- * resolve (`@layer`, a conditional `@import`) rather than picking a value that
- * might be wrong.
+ * resolve (`@layer`, a qualified `@import`, a scoped root default) rather than
+ * picking a value that might be wrong.
  */
 
 /** Environmental conditions. `@scope` is not one: it narrows where a rule matches. */
@@ -63,6 +63,10 @@ function isRootSelector(selector) {
   // follows it — `:where(vaadin-dialog)::part(overlay)` is not root scope.
   let depth = 0;
   for (let i = 0; i < normalized.length; i++) {
+    if (normalized[i] === '"' || normalized[i] === "'") {
+      i = endOfString(normalized, i);
+      continue;
+    }
     if (normalized[i] === '(') depth++;
     else if (normalized[i] === ')' && --depth === 0 && i !== normalized.length - 1) return false;
   }
@@ -105,6 +109,10 @@ function selectorWeight(selector) {
       let depth = 0;
       let end = 0;
       for (; end < args.length; end++) {
+        if (args[end] === '"' || args[end] === "'") {
+          end = endOfString(args, end);
+          continue;
+        }
         if (args[end] === '(') depth++;
         else if (args[end] === ')' && --depth === 0) break;
       }
@@ -124,8 +132,11 @@ function selectorWeight(selector) {
     else if (selector[i] === '.' || selector[i] === ':') weight += 10;
     else if (selector[i] === '[') {
       weight += 10;
-      const close = selector.indexOf(']', i);
-      i = close === -1 ? selector.length : close;
+      let close = i + 1;
+      for (; close < selector.length && selector[close] !== ']'; close++) {
+        if (selector[close] === '"' || selector[close] === "'") close = endOfString(selector, close);
+      }
+      i = close;
     } else if (/[\w-]/.test(selector[i]) && (i === 0 || /[\s>+~,)]/.test(selector[i - 1]))) {
       weight += 1; // type selector
     }
@@ -205,7 +216,7 @@ function scanStylesheet(css, { onDeclaration, onStatement }) {
       important,
       selector,
       specificity: rootSpecificity(selector),
-      scopeDepth: atRules.filter((rule) => /^@scope\b/i.test(rule)).length,
+      scoped: atRules.some((rule) => /^@scope\b/i.test(rule)),
       root: selectors.length === 1 && matchesRoot(selector, atRules),
       conditional: atRules.some((rule) => AT_RULE_CONDITIONS.test(rule)),
       conditions: atRules.filter((rule) => AT_RULE_CONDITIONS.test(rule)),
@@ -309,13 +320,15 @@ function cascadeOrder(stylesheets, entry, chain = []) {
 
 /**
  * Orders two competing root declarations the way the cascade would: an
- * `!important` declaration wins, then the nearer `@scope`, then the more
- * specific selector, then the one that comes later.
+ * `!important` declaration wins, then the more specific selector, then the one
+ * that comes later.
+ *
+ * Scoping proximity is deliberately absent — see `collectDeclarations`, which
+ * refuses a scoped root default rather than guessing where it sorts.
  */
 function wins(candidate, incumbent) {
   if (!incumbent) return true;
   if (candidate.important !== incumbent.important) return candidate.important;
-  if (candidate.scopeDepth !== incumbent.scopeDepth) return candidate.scopeDepth > incumbent.scopeDepth;
   return candidate.specificity >= incumbent.specificity;
 }
 
@@ -335,6 +348,16 @@ export function collectDeclarations(stylesheets, entry = 'aura.css') {
     scanStylesheet(stylesheets.get(file), {
       onDeclaration: (declaration) => {
         if (!declaration.root || declaration.conditional) return;
+        if (declaration.scoped) {
+          // Ordering a scoped declaration against an unscoped one needs scoping
+          // proximity — a distance to a scope root, not anything visible in the
+          // source. A theme that declares its defaults this way is out of this
+          // tool's depth; say so instead of picking a winner.
+          throw new Error(
+            `${declaration.name} is declared in root scope inside @scope (${file}). Resolving that against an ` +
+              'unscoped declaration needs scoping proximity, which this generator does not implement.',
+          );
+        }
         const record = {
           ...declaration,
           source: file,

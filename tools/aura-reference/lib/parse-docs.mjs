@@ -36,15 +36,15 @@ const BADGE_SPAN = /\[\.?badge((?:[.\s][^\]]*)?)\]/i;
  * docs from explaining `light-dark()` in a sentence.
  */
 const BADGE_WORDING = /read-only|light-dark\(\)/gi;
-const BADGE_DELIMITER = /[[\]<>{}#*_|"']/;
+const BADGE_DELIMITER = /[[\]<>{}#*_|]/;
+/** Excludes the `#read-only-properties` anchor these pages link to. */
+const IDENTIFIER_CHARACTER = /[a-z0-9-]/i;
 
 function looksLikeUnrecognizedBadge(trailer) {
   for (const match of trailer.matchAll(BADGE_WORDING)) {
     const before = trailer[match.index - 1] ?? ' ';
     const after = trailer[match.index + match[0].length] ?? ' ';
-    // Part of a longer identifier, such as the `#read-only-properties` anchor
-    // these pages link to — not a label.
-    if (/[\w-]/.test(before) || /[\w-]/.test(after)) continue;
+    if (IDENTIFIER_CHARACTER.test(before) || IDENTIFIER_CHARACTER.test(after)) continue;
     if (BADGE_DELIMITER.test(before) || BADGE_DELIMITER.test(after)) return true;
   }
   return false;

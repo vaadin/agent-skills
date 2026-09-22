@@ -11,7 +11,8 @@
       "typography",
       "other",
       "app-layout"
-    ]
+    ],
+    "expectedReadOnly": 28
   },
   "outputs": {
     "artifact": "tools/aura-reference/aura-properties.json",

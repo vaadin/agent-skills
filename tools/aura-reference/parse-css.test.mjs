@@ -168,11 +168,6 @@ test('@layer fails loudly rather than being silently flattened', () => {
 });
 
 test('a nested @scope narrows out of root scope', () => {
-  const rootScope = collectDeclarations(
-    sheets({ 'aura.css': `@scope (:root) { :scope { --aura-base-size: 18; } }` }),
-  );
-  assert.equal(rootScope.defaults.get('--aura-base-size').value, '18');
-
   const nested = collectDeclarations(
     sheets({
       'aura.css': `:root { --aura-base-size: 16; } @scope (:root) { @scope (.card) { :scope { --aura-base-size: 18; } } }`,
@@ -199,10 +194,27 @@ test('a bare nested & stays in root scope, a narrowing one does not', () => {
   assert.equal(narrowed.defaults.has('--aura-base-size'), false);
 });
 
-test('@scope targets root without being a condition, unlike @media', () => {
-  const scoped = collectDeclarations(sheets({ 'aura.css': `@scope (:root) { :scope { --aura-base-size: 18; } }` }));
-  assert.equal(scoped.defaults.get('--aura-base-size').value, '18');
+test('a scoped root default is refused rather than ordered by guesswork', () => {
+  assert.throws(
+    () => collectDeclarations(sheets({ 'aura.css': `@scope (:root) { :scope { --aura-base-size: 18; } }` })),
+    /scoping proximity/,
+  );
 
+  // A scope that cannot contain root never reaches that point.
+  const elsewhere = collectDeclarations(sheets({ 'aura.css': `@scope (.card) { :root { --aura-base-size: 18; } }` }));
+  assert.equal(elsewhere.defaults.has('--aura-base-size'), false);
+
+  // Neither does a scoped declaration that is conditional anyway, which is the
+  // only shape @vaadin/aura actually ships.
+  const conditional = collectDeclarations(
+    sheets({
+      'aura.css': `:root { --aura-base-size: 16; } @supports (color: hsl(0 0 0)) { @scope (:root) { :where(:scope) { --aura-base-size: 18; } } }`,
+    }),
+  );
+  assert.equal(conditional.defaults.get('--aura-base-size').value, '16');
+});
+
+test('at-rule matching is case-insensitive', () => {
   const upperCase = collectDeclarations(
     sheets({ 'aura.css': `@MEDIA (pointer: coarse) { :root { --aura-base-size: 18; } }` }),
   );
@@ -241,11 +253,20 @@ test('an enclosing @scope that excludes root excludes the declaration', () => {
   assert.equal(enclosed.defaults.get('--aura-base-size').value, '16');
 });
 
-test('a nearer @scope wins at equal specificity', () => {
-  const { defaults } = collectDeclarations(
-    sheets({ 'aura.css': `@scope (:root) { :root { --aura-base-size: 18; } } :root { --aura-base-size: 16; }` }),
+test('a quoted bracket or paren inside an attribute selector is not a delimiter', () => {
+  // `]` and `)` inside the quoted value must not end the attribute selector,
+  // which would count `:hover` again and inflate the specificity.
+  const inflated = collectDeclarations(
+    sheets({
+      'aura.css': `:is(:root, [data-x="]:hover"]) { --aura-base-size: 18; } :root { --aura-base-size: 16; }`,
+    }),
   );
-  assert.equal(defaults.get('--aura-base-size').value, '18');
+  assert.equal(inflated.defaults.get('--aura-base-size').value, '16');
+
+  const rejected = collectDeclarations(
+    sheets({ 'aura.css': `:is(:root, [data-x=")"]) { --aura-base-size: 18; } :where(:root) { --aura-base-size: 16; }` }),
+  );
+  assert.equal(rejected.defaults.get('--aura-base-size').value, '18');
 });
 
 test('specificity counts every component of a compound selector', () => {
