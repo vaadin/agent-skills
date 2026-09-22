@@ -191,7 +191,13 @@ async function generate(config) {
  * parser simply stopped seeing its badge.
  */
 async function verifyNoSilentDowngrade(properties, artifactPath, accepted) {
-  const previous = await readJson(artifactPath).catch(() => null);
+  // Only a genuinely absent baseline — the first ever run — means "nothing to
+  // compare against". An unreadable or malformed one is a broken guard, and a
+  // broken guard must not pass silently.
+  const previous = await readJson(artifactPath).catch((error) => {
+    if (error.code === 'ENOENT') return null;
+    throw new Error(`Cannot read ${artifactPath} to check for reclassifications: ${error.message}`);
+  });
   if (previous === null) return;
 
   const before = new Map(previous.properties.map((property) => [property.name, property]));
