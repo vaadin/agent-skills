@@ -127,13 +127,20 @@ These palette colors are used for semantic purposes (success, error, warning, in
 - `--aura-blue`
 - `--aura-purple`
 
-**Default values** (approximate):
-- Red: `#e7000b`
-- Orange: `#ca3500`
-- Yellow: `#efb100`
-- Green: `#008236`
-- Blue: `#155dfc`
-- Purple: `#9810fa`
+**Default values** — these are the exact declarations shipped in `@vaadin/aura` (`src/palette.css`):
+
+| Property | Aura default | sRGB (as rendered) |
+|---|---|---|
+| `--aura-red` | `oklch(0.59 0.2 25)` | `#DB373A` |
+| `--aura-orange` | `oklch(0.61 0.35 87)` | `#D95A00` * |
+| `--aura-yellow` | `oklch(0.89 0.3 98)` | `#FFD400` * |
+| `--aura-green` | `oklch(0.6 0.2 155)` | `#00A045` * |
+| `--aura-blue` | `oklch(0.55 0.2 264)` | `#3266E4` |
+| `--aura-purple` | `oklch(0.58 0.22 290)` | `#7E55F0` |
+
+Compare against the `oklch()` values when deciding whether an override is needed — that is what actually ships. The hex column is a reader aid only.
+
+\* Orange, yellow, and green are outside the sRGB gamut, so their hex is what browsers currently paint on an sRGB display; on a wide-gamut display they render more saturated.
 
 ### Text Colors
 
@@ -160,9 +167,9 @@ These text colors are computed to have sufficient contrast against the backgroun
 
 ### Light Background Colors
 
-| Name | Hex |
+| Name | Value |
 |---|---|
-| Default | `#F4F5F7` |
+| Default | `oklch(0.95 0.005 248)` — `#ECEFF2` |
 | White | `#ffffff` |
 | Slate | `#f1f5f9` |
 | Gray | `#e5e7eb` |
@@ -177,9 +184,9 @@ These text colors are computed to have sufficient contrast against the backgroun
 
 ### Dark Background Colors
 
-| Name | Hex |
+| Name | Value |
 |---|---|
-| Default | `#151922` |
+| Default | `oklch(0.2 0.01 260)` — `#13161B` |
 | Black | `#000000` |
 | Slate | `#131822` |
 | Gray | `#15181f` |
@@ -193,6 +200,8 @@ These text colors are computed to have sufficient contrast against the backgroun
 | Accent | `oklch(from var(--aura-accent-color-dark) 0.18 calc(c * 0.3) h)` |
 
 Light and dark backgrounds are **always paired by name** (e.g., Zinc light with Zinc dark).
+
+The **Default** rows are Aura's own shipped values (`src/color.css`) — omit them. The named options below them are curated presets, not Aura defaults.
 
 **Accent Background:**
 The "Accent" background option creates a colorful background tinted with the accent color using oklch color functions. This produces a vibrant, saturated look where the entire UI is infused with the accent hue.
@@ -266,15 +275,45 @@ Property: `--aura-base-radius`
 
 | Shape | Value |
 |---|---|
-| Square | `-1` |
-| Slightly rounded | `0` |
+| Minimal | `-1` |
+| Subtle | `0` |
 | Default | `3` |
 | Rounded | `4` |
-| Very rounded / Pill | `7` |
+| Very rounded (large surfaces only) | `7` |
 
 Unitless number. Use these exact values.
 
-**Important:** The same border radius applies to all components, including small ones like buttons and input fields. Be conservative with rounding — `7` makes small components fully rounded and should only be used when explicitly requested.
+**`--aura-base-radius` does not set a radius directly** — it feeds three derived steps:
+
+```css
+--vaadin-radius-s: min(0.25lh, round(var(--aura-base-radius) * 1px + 2px, 1px));
+--vaadin-radius-m: round(var(--aura-base-radius) * 2px + 3px, 1px);
+--vaadin-radius-l: round(var(--aura-base-radius) * 1.5px + 10px, 1px);
+```
+
+Resulting values at Aura's default line height of 20px:
+
+| `--aura-base-radius` | `radius-s` | `radius-m` | `radius-l` |
+|---|---|---|---|
+| `-1` | 1px | 1px | 9px |
+| `0` | 2px | 3px | 10px |
+| `3` (default) | 5px | 9px | 15px |
+| `4` | 5px | 11px | 16px |
+| `7` | 5px | 17px | 21px |
+
+Two consequences worth knowing:
+
+- **No value of `--aura-base-radius` produces square corners.** Even `-1` leaves 9px on large surfaces. To remove rounding entirely, override the derived properties directly:
+  ```css
+  html {
+    --vaadin-radius-s: 0;
+    --vaadin-radius-m: 0;
+    --vaadin-radius-l: 0;
+  }
+  ```
+  Some components also carry their own radius tokens (e.g. `--vaadin-tabs-border-radius`, `--vaadin-side-nav-item-border-radius`) that need setting alongside — see [night-operator.css](night-operator.css).
+
+- **`radius-s` is clamped at `0.25lh`**, so it stops growing past base `3` (5px at the default line height). Raising the base radius affects cards, dialogs, and other large surfaces, but *not* buttons and input fields — `7` is not "pill-shaped" for small components. Use it when the user asks for pronounced rounding on large surfaces, not to make controls fully round.
 
 ---
 
