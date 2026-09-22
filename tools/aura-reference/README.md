@@ -7,6 +7,7 @@ Generates the factual parts of the `aura-theme` skill reference from the publish
 node tools/aura-reference/generate.mjs                # regenerate
 node tools/aura-reference/generate.mjs --check        # fail if anything is out of date
 node tools/aura-reference/generate.mjs --update-docs  # re-pin the docs commit to the branch head
+node tools/aura-reference/generate.mjs --accept-reclassification   # allow a read-only property to become customizable
 node --test 'tools/aura-reference/*.test.mjs'         # offline unit tests
 ```
 
@@ -56,10 +57,14 @@ it may overwrite a property Aura computes — so `lib/parse-docs.mjs` guards it 
 markup is recognized in every form these docs use (including a badge that wrapped onto the next
 line of a table cell), a classification is only ever raised and never lowered by a later
 mention, a label set off by delimiters where no known badge matched fails the run rather than
-being taken for "no badge", and `docs.expectedReadOnly` pins how many properties carry a badge
-at the pinned commit. That last one is the backstop the others cannot be: reading badges out of
-prose only ever recognizes the markup it knows, so if the docs move to a form the parser cannot
-see, the count drops and the run stops.
+being taken for "no badge", and a property crossing from read-only to customizable stops the
+run until someone passes `--accept-reclassification`.
+
+That last one is the backstop the others cannot be, because it does not depend on recognizing
+markup at all. Reading badges out of prose only ever recognizes the markup it knows; the
+committed artifact records what every property was classified as last time, and a property
+becoming safe to write is the one change that must never happen quietly — whether the docs
+genuinely reclassified it or the parser simply stopped seeing its badge.
 
 `classification.json` covers what the two sources cannot say: `properties` classifies the five
 `--aura-*` properties the docs do not mention, and `undeclared` names the one documented
@@ -79,7 +84,7 @@ Every one of these fails the run rather than producing a plausible-looking artif
 | A generated block names a property Aura no longer ships | The reference would state a value that does not exist |
 | The docs use badge markup the parser does not know | Read-only properties would be reported as customizable |
 | A `@layer`, a qualified `@import`, or a scoped root default | Ordering them needs cascade rules this tool does not implement |
-| Fewer properties carry a read-only badge than `docs.expectedReadOnly` | Badge markup the parser cannot see reads as "customizable" |
+| A property that was read-only is now reported as customizable | It would tell the model to overwrite a computed property |
 | A corrupt tar header, checksum or truncated archive | The inputs cannot be trusted to state Aura's defaults |
 
 ## Colors
