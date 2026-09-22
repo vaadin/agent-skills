@@ -149,3 +149,37 @@ test('content inside an asciidoc comment block is ignored', () => {
 
   assert.equal(properties.get('--aura-red-text').readOnly, true);
 });
+
+test('a blank line does not detach a badge from its table cell', () => {
+  const properties = parseDocumentedProperties(
+    page(
+      'color',
+      [
+        '|===',
+        '|`--aura-red` | `--aura-red-text`',
+        '',
+        'xref:#light-dark-function[light-dark(),role="badge light-dark"]',
+        '|===',
+      ].join('\n'),
+    ),
+  );
+
+  assert.equal(properties.get('--aura-red-text').readOnly, true);
+});
+
+test('the inline badge carries its light-dark class', () => {
+  const properties = parseDocumentedProperties(
+    page('color', '`--aura-neutral` [.badge.light-dark]#light-dark()#::\nText.'),
+  );
+
+  assert.equal(properties.get('--aura-neutral').readOnly, true);
+  assert.equal(properties.get('--aura-neutral').lightDark, true);
+});
+
+test('prose that merely mentions light-dark() does not trip the badge guard', () => {
+  const properties = parseDocumentedProperties(
+    page('color', '`--aura-accent-color-light` Defaults to light-dark() but can be customized.::\nText.'),
+  );
+
+  assert.equal(properties.get('--aura-accent-color-light').readOnly, false);
+});

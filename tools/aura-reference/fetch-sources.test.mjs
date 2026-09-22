@@ -41,3 +41,15 @@ test('a truncated payload fails loudly instead of being silently short', () => {
 test('a header whose checksum does not match is rejected', () => {
   assert.throws(() => readTar(tarEntry('package/aura.css', 'body {}', { checksum: 1 })), /checksum/);
 });
+
+test('a header starting with NUL is not mistaken for end-of-archive', () => {
+  const archive = tarEntry('package/aura.css', 'body {}');
+  archive[0] = 0;
+  assert.throws(() => readTar(archive), /Corrupt tar header/);
+});
+
+test('a checksum field with trailing garbage is rejected', () => {
+  const archive = tarEntry('package/aura.css', 'body {}');
+  archive.write('00123x\0 ', 148, 'ascii');
+  assert.throws(() => readTar(archive), /Corrupt tar checksum field/);
+});

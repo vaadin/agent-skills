@@ -23,11 +23,16 @@
 /** `role=badge`, `role="badge light-dark"`, `role='badge light-dark'`. */
 const ROLE_ATTRIBUTE = /role\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s,\]]+))/g;
 
-/** The block/inline badge forms used elsewhere in the same docs: `[badge]*X*`, `[.badge]#X#`. */
-const BADGE_SPAN = /\[\.?badge(?:[.\s][^\]]*)?\]/i;
+/** The block/inline badge forms used elsewhere in the same docs: `[badge]*X*`, `[.badge.light-dark]#X#`. */
+const BADGE_SPAN = /\[\.?badge((?:[.\s][^\]]*)?)\]/i;
 
-/** Wording that means a badge is present even if its markup is not recognized. */
+/**
+ * Wording that means a badge is present even if its markup is not recognized —
+ * but only where it sits inside markup. In running prose, "defaults to
+ * light-dark()" is a sentence, not a badge.
+ */
 const BADGE_WORDING = /read-only|light-dark\(\)/i;
+const LOOKS_LIKE_MARKUP = /[[\]<>{}#]|xref:/;
 
 const PROPERTY_PATTERN = /`(--aura-[\w*-]+)`([^`]*)$/;
 
@@ -52,10 +57,12 @@ function firstSentence(text) {
 
 function classifyBadges(trailer, context) {
   const roles = [...trailer.matchAll(ROLE_ATTRIBUTE)].map((match) => match[1] ?? match[2] ?? match[3]);
-  const readOnly = roles.some((role) => /\bbadge\b/.test(role)) || BADGE_SPAN.test(trailer);
-  const lightDark = roles.some((role) => /\blight-dark\b/.test(role));
+  const span = BADGE_SPAN.exec(trailer);
+  const readOnly = roles.some((role) => /\bbadge\b/.test(role)) || span !== null;
+  const lightDark =
+    roles.some((role) => /\blight-dark\b/.test(role)) || (span !== null && /\blight-dark\b/.test(span[1]));
 
-  if (!readOnly && BADGE_WORDING.test(trailer)) {
+  if (!readOnly && BADGE_WORDING.test(trailer) && LOOKS_LIKE_MARKUP.test(trailer)) {
     throw new Error(
       `Unrecognized badge markup in ${context}:\n  ${trailer.trim()}\n` +
         'The text reads as a read-only badge but no known badge form matched, which would silently ' +
@@ -101,11 +108,12 @@ function propertyLines(source) {
     }
 
     if (inTable) {
-      if (line === '') flushRow();
-      else if (line.startsWith('|')) {
+      // A blank line does not end a cell, so it must not detach a badge that
+      // follows it. Only the next `|` or the end of the table closes a row.
+      if (line.startsWith('|')) {
         flushRow();
         row = line;
-      } else if (row !== null) row += ` ${line}`;
+      } else if (row !== null && line !== '') row += ` ${line}`;
       return;
     }
 

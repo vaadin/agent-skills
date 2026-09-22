@@ -35,9 +35,11 @@ conditional ones (`@media (pointer: coarse) { --aura-base-size: 18 }`) are delib
 excluded — neither is the theme default.
 
 `lib/parse-css.mjs` is not a general CSS engine. It resolves competing root declarations by
-`!important`, then a coarse specificity split (`:where(…)` contributes nothing, a bare `:root`
-does), then document order — enough for how a theme declares its defaults. What it cannot
-resolve, it refuses: `@layer` throws rather than being silently flattened.
+`!important`, then the specificity of the selector that matches root — only the root-matching
+parts of a list count, so `:where(:root), vaadin-button` stays a zero-specificity root
+declaration — then document order. What it cannot resolve, it refuses: `@layer` and a
+conditional `@import` (`layer`, `supports()`, a media query) throw rather than being flattened
+into an unconditional default.
 
 **Write-safety** comes from the Aura reference pages in `vaadin/docs`, which mark read-only
 properties with a `Read-only` or `light-dark()` badge. This is not derivable from the CSS:
@@ -71,7 +73,8 @@ Every one of these fails the run rather than producing a plausible-looking artif
 | A `<!-- BEGIN/END GENERATED … -->` marker is removed or misspelled | That table silently reverts to hand-maintained |
 | A generated block names a property Aura no longer ships | The reference would state a value that does not exist |
 | The docs use badge markup the parser does not know | Read-only properties would be reported as customizable |
-| `@layer`, a corrupt tar header, or a truncated archive | The inputs cannot be trusted to state Aura's defaults |
+| A `@layer` or a conditional `@import` | Their declarations are not unconditional root defaults |
+| A corrupt tar header, checksum or truncated archive | The inputs cannot be trusted to state Aura's defaults |
 
 ## Colors
 

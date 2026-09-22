@@ -26,7 +26,7 @@ import { fetchAuraDocs, fetchAuraStylesheets, resolveDocsCommit } from './lib/fe
 import { collectDeclarations } from './lib/parse-css.mjs';
 import { parseDocumentedProperties } from './lib/parse-docs.mjs';
 import { resolveColor } from './lib/color.mjs';
-import { renderGeneratedBlocks } from './lib/render-markdown.mjs';
+import { renderGeneratedBlocks, scanBlockMarkers } from './lib/render-markdown.mjs';
 
 const toolDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = join(toolDirectory, '..', '..');
@@ -150,12 +150,13 @@ async function generate(config) {
   };
 
   const referencePath = join(repositoryRoot, config.outputs.reference);
-  const { markdown, blocks } = renderGeneratedBlocks(await readFile(referencePath, 'utf8'), {
+  const source = await readFile(referencePath, 'utf8');
+  const blocks = verifyBlocks(source, config);
+  const { markdown } = renderGeneratedBlocks(source, {
     properties: new Map(properties.map((property) => [property.name, property])),
     derived: defaults,
     metadata: { auraVersion: config.aura.version, docs: config.docs },
   });
-  verifyBlocks(blocks, config);
 
   return {
     blocks,
@@ -171,16 +172,18 @@ async function generate(config) {
  * or misspelling one turns that table back into hand-maintained prose that
  * --check would happily keep passing, so the expected inventory is pinned.
  */
-function verifyBlocks(rendered, config) {
+function verifyBlocks(markdown, config) {
+  const { ids, problems } = scanBlockMarkers(markdown);
+  const found = new Set(ids);
   const expected = new Set(config.generatedBlocks);
-  const found = new Set(rendered);
   const missing = config.generatedBlocks.filter((id) => !found.has(id));
-  const unexpected = rendered.filter((id) => !expected.has(id));
+  const unexpected = ids.filter((id) => !expected.has(id));
 
-  if (missing.length === 0 && unexpected.length === 0) return;
+  if (problems.length === 0 && missing.length === 0 && unexpected.length === 0) return ids;
   throw new Error(
     [
       `${config.outputs.reference} does not contain the generated blocks config.json expects.`,
+      problems.length > 0 ? `Broken markers:\n  ${problems.join('\n  ')}` : '',
       missing.length > 0 ? `Missing (marker removed or misspelled):\n  ${missing.join('\n  ')}` : '',
       unexpected.length > 0 ? `Not listed in config.json:\n  ${unexpected.join('\n  ')}` : '',
       'Restore the markers, or update generatedBlocks if the change was intended.',

@@ -20,7 +20,12 @@ export function readTar(buffer) {
   for (let offset = 0; offset + BLOCK <= buffer.length; ) {
     const header = buffer.subarray(offset, offset + BLOCK);
     const name = readString(offset, 100);
-    if (name === '') break; // end-of-archive padding
+    if (name === '') {
+      // End-of-archive is a zero-filled block. A header that merely starts with
+      // a NUL is a corrupt entry, not the end of the data.
+      if (header.some((byte) => byte !== 0)) throw new Error('Corrupt tar header: expected end-of-archive padding');
+      break;
+    }
 
     verifyChecksum(header, name);
 
@@ -52,7 +57,9 @@ export function readTar(buffer) {
 
 /** The ustar header checksum: every other malformed field shows up here first. */
 function verifyChecksum(header, name) {
-  const declared = parseInt(new TextDecoder().decode(header.subarray(148, 156)).replace(/\0.*$/, '').trim(), 8);
+  const field = new TextDecoder().decode(header.subarray(148, 156)).replace(/\0.*$/, '').trim();
+  if (!/^[0-7]+$/.test(field)) throw new Error(`Corrupt tar checksum field '${field}' for ${name}`);
+  const declared = parseInt(field, 8);
   let signed = 0;
   let unsigned = 0;
   for (let i = 0; i < 512; i++) {

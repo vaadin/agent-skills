@@ -31,11 +31,12 @@ function parseAngle(token) {
 }
 
 /**
- * Splits a color function's arguments. CSS allows either all-comma or all-space
- * separators; anything else — `rgb(1,,2,3)` — is invalid and must not be
- * quietly normalized into three components.
+ * Splits a color function's arguments. Anything but three clean components —
+ * `rgb(1,,2,3)` — is invalid and must not be quietly normalized into three.
+ * Only `rgb()` has the legacy comma syntax; `oklch()` is space-separated only.
  */
-function splitComponents(text) {
+function splitComponents(text, { commas = false } = {}) {
+  if (text.includes(',') && !commas) return null;
   const parts = text.includes(',') ? text.split(',') : text.split(/\s+/);
   if (parts.length !== 3) return null;
   const trimmed = parts.map((part) => part.trim());
@@ -111,7 +112,7 @@ export function resolveColor(value) {
 
   const rgb = /^rgba?\(\s*([^/)]+?)\s*\)$/i.exec(input);
   if (rgb) {
-    const tokens = splitComponents(rgb[1]);
+    const tokens = splitComponents(rgb[1], { commas: true });
     if (!tokens) return null;
     const channels = tokens.map((token) => parseNumber(token, 255));
     if (channels.some((c) => c === null)) return null;

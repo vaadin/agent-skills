@@ -134,26 +134,54 @@ test('an escaped quote does not end the string early', () => {
 });
 
 test('!important and selector specificity outrank document order', () => {
-  const important = collectDeclarations(
-    sheets({ 'aura.css': `:root { --aura-base-size: 18 !important; } :root { --aura-base-size: 16; }` }),
-  );
-  assert.equal(important.defaults.get('--aura-base-size').value, '18');
+  const wins = (css) => collectDeclarations(sheets({ 'aura.css': css })).defaults.get('--aura-base-size').value;
 
-  const specificity = collectDeclarations(
-    sheets({ 'aura.css': `:root { --aura-base-size: 18; } :where(:root) { --aura-base-size: 16; }` }),
+  assert.equal(wins(`:root { --aura-base-size: 18 !important; } :root { --aura-base-size: 16; }`), '18');
+  assert.equal(wins(`:root { --aura-base-size: 18 ! IMPORTANT; } :root { --aura-base-size: 16; }`), '18');
+  assert.equal(wins(`:root { --aura-base-size: 18; } :where(:root) { --aura-base-size: 16; }`), '18');
+  assert.equal(wins(`:root { --aura-base-size: 18; } html { --aura-base-size: 16; }`), '18');
+  assert.equal(wins(`:is(:root, #theme) { --aura-base-size: 18; } :root { --aura-base-size: 16; }`), '18');
+});
+
+test('specificity is that of the selector matching root, not of the whole list', () => {
+  // The block is shared with a component selector, but on root it is still a
+  // zero-specificity `:where()` declaration, so the later one wins.
+  const { defaults } = collectDeclarations(
+    sheets({
+      'aura.css': `:where(:root), vaadin-button { --aura-base-size: 18; } :where(:root) { --aura-base-size: 16; }`,
+    }),
   );
-  assert.equal(specificity.defaults.get('--aura-base-size').value, '18');
+  assert.equal(defaults.get('--aura-base-size').value, '16');
 });
 
 test('@layer fails loudly rather than being silently flattened', () => {
-  assert.throws(
-    () => collectDeclarations(sheets({ 'aura.css': `@layer second { :root { --aura-base-size: 18; } }` })),
-    /@layer is not supported/,
+  const rejected = [
+    `@layer second { :root { --aura-base-size: 18; } }`,
+    `@import './a.css' layer(theme);`,
+    `@import './a.css' layer;`,
+    `@import './a.css' print;`,
+    `@import './a.css' supports(display: grid);`,
+  ];
+  for (const css of rejected) {
+    assert.throws(() => collectDeclarations(sheets({ 'aura.css': css, 'a.css': '' })), /not supported/, css);
+  }
+});
+
+test('a nested @scope narrows out of root scope', () => {
+  const rootScope = collectDeclarations(
+    sheets({ 'aura.css': `@scope (:root) { :scope { --aura-base-size: 18; } }` }),
   );
-  assert.throws(
-    () => collectDeclarations(sheets({ 'aura.css': `@import './a.css' layer(theme);`, 'a.css': '' })),
-    /layer is not supported/,
+  assert.equal(rootScope.defaults.get('--aura-base-size').value, '18');
+
+  const nested = collectDeclarations(
+    sheets({
+      'aura.css': `:root { --aura-base-size: 16; } @scope (:root) { @scope (.card) { :scope { --aura-base-size: 18; } } }`,
+    }),
   );
+  assert.equal(nested.defaults.get('--aura-base-size').value, '16');
+
+  const elsewhere = collectDeclarations(sheets({ 'aura.css': `@scope (.card) { :root { --aura-base-size: 18; } }` }));
+  assert.equal(elsewhere.defaults.has('--aura-base-size'), false);
 });
 
 test('a comma inside an attribute selector is not a selector boundary', () => {

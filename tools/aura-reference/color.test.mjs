@@ -67,3 +67,8 @@ test('an alpha channel is not silently dropped', () => {
   assert.equal(resolveColor('rgb(50 102 228 / 50%)'), null);
   assert.equal(resolveColor('#3266e480'), null);
 });
+
+test('only rgb() has the legacy comma syntax', () => {
+  assert.deepEqual(resolveColor('rgb(50, 102, 228)'), { hex: '#3266E4', inSrgbGamut: true });
+  assert.equal(resolveColor('oklch(0.59, 0.2, 25)'), null);
+});

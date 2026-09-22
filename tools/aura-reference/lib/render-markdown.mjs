@@ -173,6 +173,39 @@ function buildBlock(id, context) {
   }
 }
 
+/**
+ * Every generated marker in the document, paired up.
+ *
+ * Rendering alone cannot police this: an orphaned or duplicated marker simply
+ * fails to match the block pattern, leaving stale content in place while the
+ * run reports success. Reading the raw markers is what makes that visible.
+ *
+ * @returns {{ids: string[], problems: string[]}}
+ */
+export function scanBlockMarkers(markdown) {
+  const markers = [...markdown.matchAll(/<!--\s*(BEGIN|END) GENERATED (\S+?)\s*-->/g)];
+  const problems = [];
+  const ids = [];
+  let open = null;
+
+  for (const [, kind, id] of markers) {
+    if (kind === 'BEGIN') {
+      if (open !== null) problems.push(`"${open}" is not closed before "${id}" begins`);
+      else if (ids.includes(id)) problems.push(`"${id}" appears more than once`);
+      open = id;
+    } else if (open === null) {
+      problems.push(`"${id}" is closed without being opened`);
+    } else {
+      if (open !== id) problems.push(`"${open}" is closed by an "${id}" marker`);
+      ids.push(open);
+      open = null;
+    }
+  }
+
+  if (open !== null) problems.push(`"${open}" is never closed`);
+  return { ids, problems };
+}
+
 export function renderGeneratedBlocks(markdown, context) {
   const seen = new Set();
   const rendered = markdown.replace(BLOCK_PATTERN, (_, indent, id) => {

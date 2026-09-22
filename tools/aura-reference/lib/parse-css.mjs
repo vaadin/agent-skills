@@ -4,9 +4,10 @@
  * — those are the theme's defaults — from component- and media-scoped ones.
  *
  * This is not a general CSS engine. It resolves the cascade far enough for a
- * theme's root declarations — `!important`, a coarse specificity split, and
- * document order — and throws on constructs it cannot resolve (`@layer`)
- * rather than picking a value that might be wrong.
+ * theme's root declarations — `!important`, the specificity of the selector
+ * that matches root, and document order — and throws on constructs it cannot
+ * resolve (`@layer`, a conditional `@import`) rather than picking a value that
+ * might be wrong.
  */
 
 /** Environmental conditions. `@scope` is not one: it narrows where a rule matches. */
@@ -69,22 +70,45 @@ function isRootSelector(selector) {
 }
 
 function matchesRoot(selectorList, atRules) {
+  // Only the innermost `@scope` decides what the rule — and `:scope` — refers
+  // to. `@scope (:root) { @scope (.card) { … } }` is scoped to cards.
+  const innermostScope = atRules.filter((rule) => /^@scope\b/i.test(rule)).at(-1);
+  if (innermostScope !== undefined) {
+    const prelude = /^@scope\s*\((.*?)\)/i.exec(innermostScope);
+    if (!prelude || !splitTopLevel(prelude[1]).some(isRootSelector)) return false;
+  }
+
   if (splitTopLevel(selectorList).some(isRootSelector)) return true;
   // `@scope (:root) { :scope { … } }` addresses the root element too.
-  if (!/^(?::(?:where|is)\(:scope\)|:scope)$/i.test(selectorList.trim())) return false;
-  return atRules.some((rule) => {
-    const root = /^@scope\s*\((.*?)\)/i.exec(rule);
-    return root ? splitTopLevel(root[1]).some(isRootSelector) : false;
-  });
+  return innermostScope !== undefined && /^(?::(?:where|is)\(:scope\)|:scope)$/i.test(selectorList.trim());
 }
 
 /**
- * A coarse stand-in for selector specificity, enough to order the two forms a
- * theme uses for root declarations: `:where(…)` contributes nothing, while a
- * bare `:root`/`:host`/`html` does.
+ * Approximate specificity of one compound selector: id, then class/attribute/
+ * pseudo-class, then type. `:where()` contributes nothing and `:is()` takes its
+ * most specific argument, as the selectors spec says.
  */
-function isZeroSpecificity(selector) {
-  return splitTopLevel(selector).every((part) => /^:where\(.*\)$/is.test(part.trim()));
+function selectorWeight(selector) {
+  const wrapper = /^:(where|is|matches)\((.*)\)$/is.exec(selector.trim());
+  if (wrapper) {
+    if (/^where$/i.test(wrapper[1])) return 0;
+    return Math.max(0, ...splitTopLevel(wrapper[2]).map(selectorWeight));
+  }
+  const compound = selector.trim();
+  if (compound.startsWith('#')) return 100;
+  if (/^[.[:]/.test(compound)) return 10;
+  return 1;
+}
+
+/**
+ * The weight a declaration carries *on the root element*. Only the parts of the
+ * list that match root count: a block shared with component selectors still
+ * lands on root with the weight of its own root selector, so
+ * `:where(:root), vaadin-button` stays a zero-specificity root declaration.
+ */
+function rootSpecificity(selectorList) {
+  const matching = splitTopLevel(selectorList).filter(isRootSelector);
+  return matching.length === 0 ? 0 : Math.max(...matching.map(selectorWeight));
 }
 
 /** Collapses the multi-line values Aura uses for `light-dark()` and `oklch()`. */
@@ -130,8 +154,8 @@ function scanStylesheet(css, { onDeclaration, onStatement }) {
 
     const name = text.slice(0, colon).trim();
     let value = normalizeValue(text.slice(colon + 1));
-    const important = /!important$/.test(value);
-    if (important) value = value.replace(/\s*!important$/, '');
+    const important = /!\s*important$/i.test(value);
+    if (important) value = value.replace(/\s*!\s*important$/i, '');
 
     const atRules = stack.filter((entry) => entry.startsWith('@'));
     // A nested `&` on its own re-states the parent selector rather than
@@ -144,6 +168,7 @@ function scanStylesheet(css, { onDeclaration, onStatement }) {
       value,
       important,
       selector,
+      specificity: rootSpecificity(selector),
       root: selectors.length === 1 && matchesRoot(selector, atRules),
       conditional: atRules.some((rule) => AT_RULE_CONDITIONS.test(rule)),
       conditions: atRules.filter((rule) => AT_RULE_CONDITIONS.test(rule)),
@@ -213,9 +238,16 @@ function importTargets(css, directory) {
       if (/^@layer\b/i.test(statement)) throw new Error(`@layer is not supported: ${statement}`);
       if (!/^@import\b/i.test(statement)) return;
 
-      const target = /^@import\s+(?:url\(\s*)?(?:'([^']*)'|"([^"]*)"|([^\s'")]+))/i.exec(statement);
+      const target = /^@import\s+(?:url\(\s*)?(?:'([^']*)'|"([^"]*)"|([^\s'")]+))\s*\)?/i.exec(statement);
       if (!target) throw new Error(`Unrecognized @import: ${statement}`);
-      if (/\blayer\s*\(/i.test(statement)) throw new Error(`@import into a layer is not supported: ${statement}`);
+
+      const qualifiers = statement.slice(target[0].length).trim();
+      if (qualifiers !== '') {
+        throw new Error(
+          `@import with a layer, supports() or media qualifier is not supported: ${statement}\n` +
+            'Such a sheet applies conditionally, which this generator cannot represent as a default.',
+        );
+      }
       targets.push(resolvePath(directory, target[1] ?? target[2] ?? target[3]));
     },
   });
@@ -246,9 +278,7 @@ function cascadeOrder(stylesheets, entry, chain = []) {
 function wins(candidate, incumbent) {
   if (!incumbent) return true;
   if (candidate.important !== incumbent.important) return candidate.important;
-  const candidateSpecificity = isZeroSpecificity(candidate.selector) ? 0 : 1;
-  const incumbentSpecificity = isZeroSpecificity(incumbent.selector) ? 0 : 1;
-  return candidateSpecificity >= incumbentSpecificity;
+  return candidate.specificity >= incumbent.specificity;
 }
 
 /**
