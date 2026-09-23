@@ -19,8 +19,8 @@
 **Component-specific styling:** See [components.md](components.md)
 
 <!-- BEGIN GENERATED source -->
-Property defaults below are generated from `@vaadin/aura@25.3.0-rc1`;
-read-only classification from `vaadin/docs` `v25.3` (`452ccc5`).
+Property defaults below are generated from `@vaadin/aura@25.3.0`;
+read-only classification from `vaadin/docs` `v25.3` (`d349c69`).
 Regenerate with `node tools/aura-reference/generate.mjs`.
 <!-- END GENERATED source -->
 

@@ -46,7 +46,7 @@ in the source.
 
 **Write-safety** comes from the Aura reference pages in `vaadin/docs`, which mark read-only
 properties with a `Read-only` or `light-dark()` badge. This is not derivable from the CSS:
-49 of Aura's 74 properties have values computed from other custom properties at `25.3.0-rc1`,
+49 of Aura's 74 properties have values computed from other custom properties at `25.3.0`,
 but nine of those — the `-light`/`-dark` accent, neutral, shadow, and overlay outline colors —
 are exactly the documented way to customize the theme. `computed` and `writable` are therefore
 separate fields in the artifact, and a generator that conflated them would tell the model to

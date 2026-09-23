@@ -1,10 +1,10 @@
 {
   "aura": {
-    "version": "25.3.0-rc1"
+    "version": "25.3.0"
   },
   "docs": {
     "branch": "v25.3",
-    "commit": "452ccc574fd849bfb957c431674feff55373501c",
+    "commit": "d349c69d8e19eca6cfc99b2be2dcf0f3331e946b",
     "pages": [
       "index",
       "color",
