@@ -7,7 +7,6 @@ description: >
   "add polish", "design a UI", "create a beautiful interface", or when building a new view
   where visual quality matters. Also trigger when the user wants to add animations, visual
   effects, or build polished component compositions in a Vaadin application.
-version: 0.2.0
 ---
 
 # Creating Distinctive Vaadin Interfaces

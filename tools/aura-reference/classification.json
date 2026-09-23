@@ -1,0 +1,37 @@
+{
+  "comment": [
+    "Hand-curated gaps in what the two generated sources can say about --aura-* properties.",
+    "`properties` classifies the ones the Aura reference pages in vaadin/docs do not cover; everything",
+    "documented is classified from the Read-only / light-dark() badges instead (see lib/parse-docs.mjs).",
+    "`undeclared` lists documented properties that @vaadin/aura deliberately never declares, so that a",
+    "property vanishing from the CSS is reported instead of being read as an opt-in hook.",
+    "generate.mjs fails on any entry here that is no longer needed, so neither list can accumulate."
+  ],
+  "properties": {
+    "--aura-accent-color-light-initial": {
+      "writable": false,
+      "reason": "Snapshot of the application-level accent color. Aura reads it to restore the accent inside scoped accent contexts (.aura-accent-* class names), so overriding it detaches those contexts from the theme."
+    },
+    "--aura-accent-color-dark-initial": {
+      "writable": false,
+      "reason": "Snapshot of the application-level accent color. Aura reads it to restore the accent inside scoped accent contexts (.aura-accent-* class names), so overriding it detaches those contexts from the theme."
+    },
+    "--aura-overlay-outline-shadow": {
+      "writable": false,
+      "reason": "Assembles the two overlay outline colors into a box-shadow. Set --aura-overlay-outline-color and --aura-overlay-inner-outline-color instead."
+    },
+    "--aura-item-overlay-padding-inline": {
+      "writable": false,
+      "reason": "Undocumented internal property behind the padding and corner radius of overlay items. Not part of Aura's public API."
+    },
+    "--aura-item-overlay-padding-block": {
+      "writable": false,
+      "reason": "Undocumented internal property behind the padding and corner radius of overlay items. Not part of Aura's public API."
+    }
+  },
+  "undeclared": {
+    "--aura-font-smoothing": {
+      "reason": "An opt-in hook with no default: Aura only reads it, as var(--aura-font-smoothing, antialiased), so there is nothing for the CSS to declare."
+    }
+  }
+}

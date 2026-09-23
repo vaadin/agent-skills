@@ -1,0 +1,28 @@
+name: Aura reference
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Generator tests and drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests
+        run: node --test 'tools/aura-reference/*.test.mjs'
+
+      # Fails when the committed artifact or reference no longer matches what the
+      # pinned @vaadin/aura and vaadin/docs revisions produce — either because
+      # someone hand-edited a generated block, or because a pin was bumped
+      # without regenerating.
+      - name: Check generated reference is up to date
+        run: node tools/aura-reference/generate.mjs --check

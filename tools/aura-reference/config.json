@@ -1,0 +1,39 @@
+{
+  "aura": {
+    "version": "25.3.0"
+  },
+  "docs": {
+    "branch": "v25.3",
+    "commit": "d349c69d8e19eca6cfc99b2be2dcf0f3331e946b",
+    "pages": [
+      "index",
+      "color",
+      "typography",
+      "other",
+      "app-layout"
+    ]
+  },
+  "outputs": {
+    "artifact": "tools/aura-reference/aura-properties.json",
+    "reference": "skills/aura-theme/references/property-values.md"
+  },
+  "generatedBlocks": [
+    "source",
+    "accent-colors",
+    "neutral-colors",
+    "palette-colors",
+    "background-colors",
+    "default:--aura-contrast-level",
+    "default:--aura-surface-level",
+    "default:--aura-surface-opacity",
+    "default:--aura-overlay-surface-opacity",
+    "default:--aura-base-radius",
+    "radius-steps",
+    "default:--aura-base-size",
+    "default:--aura-base-font-size",
+    "default:--aura-font-family",
+    "default:--aura-app-layout-inset",
+    "customizable-properties",
+    "read-only-properties"
+  ]
+}
