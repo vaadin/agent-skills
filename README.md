@@ -39,6 +39,18 @@ MCP setup required.
 You can also browse and install `vaadin-skills` from the marketplace browser via
 `/plugin`. To pick up later changes, run `/plugin marketplace update vaadin-marketplace`.
 
+If you previously added the deprecated [`vaadin/claude-plugin`](https://github.com/vaadin/claude-plugin)
+marketplace, which uses the same `vaadin-marketplace` name, or added this one
+under a different URL, Claude Code refuses the `add` with *"its network source
+differs from the one declared for it in settings"*. Remove the old entry first,
+then add and install again:
+
+```sh
+/plugin marketplace remove vaadin-marketplace
+/plugin marketplace add vaadin/agent-marketplace
+/plugin install vaadin-skills@vaadin-marketplace
+```
+
 **Codex:**
 
 ```sh
