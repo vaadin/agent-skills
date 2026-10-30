@@ -1,6 +1,6 @@
 # Vaadin Agent Skills
 
-Agent skills for helping coding agents style, design, and lay out Vaadin 25 applications.
+Agent skills for helping coding agents style, design, lay out, and review Vaadin 25 applications.
 
 These skills can be installed as a plugin from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex) or with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
@@ -127,6 +127,7 @@ connected.
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
 | `vaadin-frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
+| `vaadin-usage-review` | Review Vaadin code for workarounds where an official Vaadin API or component exists, verified against the Vaadin MCP. Reports only; never edits. |
 
 ## Repository Structure
 

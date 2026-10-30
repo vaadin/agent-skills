@@ -1,6 +1,6 @@
 {
   "name": "vaadin-skills",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Skills and tools for building high-quality Vaadin 25 applications with Java, Flow, and the Vaadin MCP server.",
   "author": {
     "name": "Vaadin",
@@ -20,8 +20,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Vaadin Skills",
-    "shortDescription": "Style, design, and lay out Vaadin 25 application UIs.",
-    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, and building form and entity-editor layouts. It also configures the Vaadin MCP server for current documentation and API lookup.",
+    "shortDescription": "Style, design, lay out, and review Vaadin 25 application UIs.",
+    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, building form and entity-editor layouts, and reviewing code for workarounds where Vaadin already has an API. It also configures the Vaadin MCP server for current documentation and API lookup.",
     "developerName": "Vaadin",
     "category": "Developer Tools",
     "capabilities": [
