@@ -4,9 +4,10 @@
     "skills": [
         "./skills/aura-theme",
         "./skills/vaadin-frontend-design",
-        "./skills/vaadin-form-layout"
+        "./skills/vaadin-form-layout",
+        "./skills/vaadin-browserless-testing"
     ],
-    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, and form layout. Includes the hosted Vaadin MCP server for current documentation and API lookup.",
+    "description": "Skills and tools for building high-quality Vaadin 25 applications with Java/Flow — theming, visual design, form layout, and browserless UI testing. Includes the hosted Vaadin MCP server for current documentation and API lookup.",
     "author": {
         "name": "Vaadin",
         "url": "https://vaadin.com"
@@ -21,6 +22,7 @@
         "web",
         "ui",
         "spring-boot",
-        "spring"
+        "spring",
+        "testing"
     ]
 }
