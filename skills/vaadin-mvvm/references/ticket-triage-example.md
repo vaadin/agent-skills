@@ -6,6 +6,7 @@ A support desk triages tickets. `TicketsView` shows a searchable, filterable lis
 - Clicking a ticket opens it in the editor. Editing makes it *dirty*; **Save** is enabled only when the ticket is dirty and the title isn't blank, and a blank title shows an error on the field.
 - Clicking another ticket while there are unsaved edits asks first. **Discard** opens the clicked ticket; **Keep editing** returns the list selection to the ticket being edited.
 - Saving keeps the ticket open and selected, and updates its row in the list.
+- Navigating away from the view with unsaved edits asks first, too.
 
 All of this code compiles against Vaadin 25.3, and the tests pass.
 
@@ -234,12 +235,14 @@ class TicketsViewModel {
 
 ## 3. The view
 
-Creates the ViewModel, lays out the components, and binds them. Listeners call one command each. Effects appear only where no bind method exists: the grid's items, the title field's error, and the dialog's opened state.
+Creates the ViewModel, lays out the components, and binds them. Listeners call one command each. Effects appear only where no bind method exists: the grid's items, the title field's error, and the dialog's opened state. The `bindError` helper shows a ViewModel's error on any field; copy it into each view or into a shared utility class.
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -250,11 +253,14 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeLeaveEvent;
+import com.vaadin.flow.router.BeforeLeaveEvent.ContinueNavigationAction;
+import com.vaadin.flow.router.BeforeLeaveObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.signals.Signal;
 
 @Route("tickets")
-public class TicketsView extends HorizontalLayout {
+public class TicketsView extends HorizontalLayout implements BeforeLeaveObserver {
 
     private final TicketsViewModel viewModel;
 
@@ -293,12 +299,7 @@ public class TicketsView extends HorizontalLayout {
     private VerticalLayout createEditor() {
         TextField title = new TextField("Title");
         title.bindValue(viewModel.title(), viewModel::setTitle);
-        title.setManualValidation(true);
-        Signal.effect(title, () -> {
-            String error = viewModel.titleError().get();
-            title.setInvalid(error != null);
-            title.setErrorMessage(error);
-        });
+        bindError(title, viewModel.titleError());
 
         ComboBox<Status> status = new ComboBox<>("Status", Status.values());
         status.bindValue(viewModel.status(), viewModel::setStatus);
@@ -333,14 +334,36 @@ public class TicketsView extends HorizontalLayout {
         dialog.setCancelButton("Keep editing", e -> viewModel.keepEditing());
         Signal.effect(this, () -> dialog.setOpened(viewModel.confirmingDiscard().get()));
     }
+
+    /** Shows the ViewModel's error for a field; null means no error. */
+    private static <F extends Component & HasValidation> void bindError(F field,
+            Signal<String> error) {
+        field.setManualValidation(true);
+        Signal.effect(field, () -> {
+            String message = error.get();
+            field.setInvalid(message != null);
+            field.setErrorMessage(message);
+        });
+    }
+
+    @Override
+    public void beforeLeave(BeforeLeaveEvent event) {
+        if (viewModel.dirty().peek()) {
+            ContinueNavigationAction navigation = event.postpone();
+            new ConfirmDialog("Unsaved changes", "Leave and discard your changes?",
+                    "Leave", e -> navigation.proceed(),
+                    "Stay", e -> navigation.cancel()).open();
+        }
+    }
 }
 ```
 
 Notes:
 
 - The grid's items are set once and refreshed from an effect, because `setItems()` would clear the bound selection on every reload. The identifier provider keeps the saved ticket's row selected after its record is replaced.
-- The dialog's effect is owned by the view, not by the dialog: a closed dialog isn't attached, and an effect runs only while its owner is attached.
-- The view never checks state. Even the Discard button just calls `discardChanges()`: with nothing else selected, that reopens the current ticket and drops the edits.
+- The discard dialog's effect is owned by the view, not by the dialog: a closed dialog isn't attached, and an effect runs only while its owner is attached.
+- The view never checks state in its listeners. Even the Discard button just calls `discardChanges()`: with nothing else selected, that reopens the current ticket and drops the edits.
+- `beforeLeave` is the exception: the router needs an answer at once, so the view reads `dirty()` with `peek()`. The postponed navigation is a router object, so it stays in the view, and so does the dialog that resumes it.
 
 ## 4. The ViewModel tests
 

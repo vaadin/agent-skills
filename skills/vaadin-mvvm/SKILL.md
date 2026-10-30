@@ -27,13 +27,15 @@ Most views don't need a ViewModel. Pick the lightest level that keeps each view 
 | Level | What it is | Fits |
 |---|---|---|
 | 1. Plain view | Components, listeners, service calls; `Binder` for forms | Login, settings, a form that loads and saves one entity, a list with one filter, read-only pages |
-| 2. Signals in the view | `ValueSignal` fields in the view class, bound to components | A few pieces of UI state shared by two or three components: a toggle, a filter, the selected item |
+| 2. Signals in the view | `ValueSignal` fields in the view class, bound to components | A few pieces of UI state that more than one component reads: a toggle, a filter, the selected item, a dashboard's latest data |
 | 3. View + ViewModel | The signals and the rules move to a ViewModel class that the view creates | A view where two or more of the signs below hold |
+
+A signal earns its place when a second component reads the state. A search field that feeds one grid needs only a value-change listener.
 
 Move to a ViewModel when **at least two** of these hold:
 
 - **Rules over combined state.** What is visible, enabled, or shown depends on more than one piece of state: "Save is enabled when the draft has changes and is valid."
-- **State shared by parts of the view.** The view is split into components — filter bar, list, detail panel, toolbar — that read or change the same state.
+- **State shared by parts of the view.** The view is split into parts — filter bar, list, detail panel, toolbar, wizard steps — that read or change the same state. A field and the grid it filters are not parts.
 - **Behaviour worth a unit test.** You can state a rule about the view without naming a component, such as "switching tickets with unsaved edits asks first", and it deserves a test.
 - **Flows and modes.** Wizards, view and edit modes, unsaved-changes guards, confirm-before-continue.
 - **State that changes without a click.** Background loading, polling, pushed updates.
@@ -42,10 +44,12 @@ A ViewModel is overkill when:
 
 - It would only forward: each command is one service call, and nothing is derived.
 - Each piece of state is used by exactly one component.
-- The view is a form for one entity. `Binder` already does that job.
+- The view is a form that loads one entity and saves it, with no rules beyond validating each field. `Binder` already does that job. A wizard or an editor with totals, lines, or guards is not such a form, even if it saves one entity.
 - The view is a throwaway prototype.
 
-Quick test: write the ViewModel's public API first, meaning the signals it exposes and its commands. If it has fewer than three state signals, no derived signal, and commands that only delegate, stay at level 1 or 2. Tell the user which level you picked and why.
+Quick test: write the ViewModel's public API first, meaning the signals it exposes and its commands. Then strike out what a plain view gets for free: a signal per form field and a command that only passes a value to a service. If nothing is left — no derived signal that combines state, no guard, no flow — stay at level 1 or 2. Tell the user which level you picked and why.
+
+At level 1, build forms with `Binder` (look up the Binder guides with `search_vaadin_docs`) and lay them out with the `vaadin-form-layout` skill. At level 2, the patterns below apply as written, with the view's own signals in place of `viewModel.x()`.
 
 Moving from level 2 to level 3 is mechanical. Move the signal fields and the code that changes them into the ViewModel, make the fields private, and expose read-only signals and commands.
 
@@ -135,10 +139,10 @@ class TicketsViewModel {
 3. **All state lives in private signals.** Any other field is `final`: services and constants. Keep the values immutable: records with `withX` methods, and lists from `List.copyOf(...)` or `.toList()`. Change them with `update(d -> d.withTitle(t))`. Never mutate an object you read with `peek()`, because the signal can't see that change.
 4. **State goes out as read-only signals.** Return `asReadonly()`, `map(...)`, or `Signal.computed(...)`, never a `ValueSignal`. Then every change goes through a command, and the ViewModel's API lists exactly what the user can do.
 5. **Commands come in, named after what the user means to do:** `select(ticket)`, `search(text)`, `save()`, `keepEditing()`. A field edit is a command too (`setTitle`). It's the write callback of `bindValue`.
-6. **Derive, don't sync.** When a value can be computed from other state, make it `Signal.computed(...)` or `map(...)`. Never keep a second signal in step by hand. If a derivation is expensive and read in several places, wrap it in `Signal.cached(...)`.
+6. **Derive, don't sync.** When a value can be computed from other state, make it `Signal.computed(...)` or `map(...)`. Never keep a second signal in step by hand. A derivation runs again on every read, so keep it cheap and free of side effects. It may call a pure domain function, such as a pricing rule, but never a service that does I/O. If a derivation is expensive and read in several places, wrap it in `Signal.cached(...)`.
 7. **React in commands, not in effects.** The ViewModel has no `Signal.effect`, which needs an owner component, and no `Signal.unboundEffect`, which leaks unless removed. When a filter change must reload data, the filter command does the reload.
 8. **Use `peek()` in commands and `get()` in derivations.** Calling `get()` outside a computed signal or an effect throws `IllegalStateException`.
-9. **Return one-shot outcomes; keep lasting conditions as state.** If the view must react once to a command, such as showing a notification or navigating away, the command returns the outcome: a `boolean`, an enum, or a sealed result. Anything that stays on screen, such as an error, a "Saving…" marker, or an open question to the user, is a signal.
+9. **Return one-shot outcomes; keep lasting conditions as state.** If the view must react once to a command, such as showing a notification or navigating away, the command returns the outcome: a `boolean`, an enum, or a sealed result. Anything that stays on screen, such as an error the user has to fix, a "Saving…" marker, or an open question to the user, is a signal. A failed save that only needs a notification is a returned outcome; a conflict that the form keeps showing until the user resolves it is state.
 10. **Anything a two-way component can show is state.** If a write callback ignores or rejects a value, the component keeps showing the user's value. It doesn't snap back. So when the ViewModel can't accept a change right away, it stores the change as state and settles it with a later command. In the example, clicking another ticket while there are unsaved edits sets `selected`. `confirmingDiscard` is derived from `selected` differing from `opened`, and `keepEditing()` sets `selected` back, so the grid's selection follows.
 
 ## The view
@@ -171,7 +175,7 @@ public class TicketsView extends HorizontalLayout {
 
 1. **The `@Route` class creates the ViewModel** in its constructor and keeps it in a `private final` field. Spring or Quarkus injects the services into the view's constructor, and the view passes them on.
 2. **Bind, don't push.** Use `bindText`, `bindVisible`, `bindEnabled`, `bindReadOnly`, `bindValue(viewModel.x(), viewModel::setX)`, `bindChildren`, and `grid.asSingleSelect().bindValue(...)`. Use `Signal.effect(owner, ...)` only for what has no bind method, such as `setItems`, `setInvalid`, or `setOpened`.
-3. **Listeners only call commands.** A listener calls one command and at most acts on its result. It doesn't check state or call services.
+3. **Listeners only call commands.** A listener calls one command and at most acts on its result. It doesn't call services or decide anything the ViewModel could decide. When a framework callback needs an answer at once, such as `beforeLeave` asking whether to stop navigation, the view may read a derived signal with `peek()`: `viewModel.dirty().peek()`.
 4. **The view does what only a UI can do:** notifications, dialogs, navigation, focus, and reading route parameters.
 5. **Child components receive state; they never create it.** Pass a child component the ViewModel, or only the signals and commands it needs, which keeps it reusable. Only the route view creates a ViewModel, or a parent ViewModel creates its child ViewModels.
 
@@ -180,7 +184,7 @@ public class TicketsView extends HorizontalLayout {
 ### Lists and grids
 
 - A list that is reloaded as a whole, such as search results, is a `ValueSignal<List<T>>` holding an immutable list.
-- A list the user edits entry by entry and the view renders with `bindChildren` is a `ListSignal<T>`.
+- A list the user edits entry by entry, such as an order's lines, is a `ListSignal<T>` that the view renders with `bindChildren`. `ListSignal` has no `asReadonly()`, so expose the entries as `Signal<List<Signal<T>>>` with `lines.map(entries -> List.<Signal<Line>>copyOf(entries))`. Commands such as `setQuantity(Signal<Line> line, Integer quantity)` take an entry and find it by identity. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code.
 
 When a grid's selection is bound, set its items once and refresh them from an effect. `grid.setItems(...)` replaces the data provider, which always clears the selection, and the selection binding passes that to the ViewModel as a `null` selection:
 
@@ -208,22 +212,35 @@ Signal.effect(grid, () -> {
 });
 ```
 
-### Forms: signals or Binder
+### Forms without Binder
 
-A field is bound either by `bindValue` or by `Binder`, never by both.
+A view with a ViewModel doesn't use `Binder`. `Binder` keeps the form's values and validity to itself, so the ViewModel's rules — Save enabled, Next enabled, a total — can't build on them, and it binds one fixed bean, not a list of rows. A field is bound either by `bindValue` or by `Binder`, never by both, so every field binds to the ViewModel's signals. `Binder` stays the tool for level 1 forms.
 
-- **Signals (the default inside a ViewModel).** The draft is a record in a `ValueSignal`. Fields bind with `bindValue(viewModel.title(), viewModel::setTitle)`, and the validation rules are derived signals such as `titleError` and `canSave`, which the ViewModel tests cover. To show a field's error, turn on manual validation and set the error from an effect:
+What `Binder` would have done moves into the ViewModel:
 
-  ```java
-  title.setManualValidation(true);
-  Signal.effect(title, () -> {
-      String error = viewModel.titleError().get();
-      title.setInvalid(error != null);
-      title.setErrorMessage(error);
-  });
-  ```
+- **Values.** The draft is a record in a `ValueSignal`. Each field binds to a mapped signal and a command: `title.bindValue(viewModel.title(), viewModel::setTitle)`.
+- **Validation.** Each rule is a derived signal holding the error message, or `null` when the value is fine, such as `titleError()` or `quantityError(line)`. `canSave` combines them, and the ViewModel tests cover all of them.
+- **Built-in checks.** Showing your own error needs manual validation, which turns off the field's built-in checks: required, min and max, pattern. Write those as ViewModel rules too.
+- **Conversion.** Use typed fields — `IntegerField`, `BigDecimalField`, `DatePicker`, `ComboBox<T>` — so values arrive typed. A command converts what's left, such as a code typed as text, and an error signal reports input it can't convert. A cleared or unparseable number arrives as `null`. Store it and let a rule report it; see rule 10.
+- **When errors appear.** A derived error shows as soon as the draft breaks the rule, even on a new, empty form. To hold errors back until the user tries to save, keep a `submitted` signal that `save()` sets, and have each error signal return `null` while it is false.
 
-- **Binder in the view.** Use this when the form needs converters or Jakarta Bean Validation annotations, or when the ViewModel only loads and saves the entity. The ViewModel exposes the bean to edit and a `save(bean)` command. The view calls `binder.readBean(...)` from an effect, calls `viewModel.save(bean)` when `binder.writeBeanIfValid(bean)` succeeds, and binds the Save button to `binder.validationStatusSignal().map(BinderValidationStatus::isOk)`. The form's own validation rules then stay out of the ViewModel tests.
+One helper in the view shows any error signal on any field:
+
+```java
+private static <F extends Component & HasValidation> void bindError(F field,
+        Signal<String> error) {
+    field.setManualValidation(true);
+    Signal.effect(field, () -> {
+        String message = error.get();
+        field.setInvalid(message != null);
+        field.setErrorMessage(message);
+    });
+}
+```
+
+### Steps and modes
+
+Keep a wizard's step, or a view's mode, as an enum in a signal. Show each part with `bindVisible(viewModel.step().map(s -> s == Step.PLAN))`. Derive `canGoNext` and `canGoBack` from the step and the validity of its fields. `back()` changes only the step, so whatever the user entered stays in the draft.
 
 ### Dialogs and confirmations
 
@@ -234,6 +251,24 @@ Signal.effect(this, () -> dialog.setOpened(viewModel.confirmingDiscard().get()))
 dialog.setConfirmButton("Discard", e -> viewModel.discardChanges());
 dialog.setCancelButton("Keep editing", e -> viewModel.keepEditing());
 ```
+
+### Leaving with unsaved changes
+
+The router asks before the user navigates away, and it needs the answer at once. The view reads the ViewModel's `dirty()` with `peek()` and postpones the navigation. The postponed navigation is a router object, so it stays in the view, and so does the dialog that resumes it:
+
+```java
+@Override
+public void beforeLeave(BeforeLeaveEvent event) {
+    if (viewModel.dirty().peek()) {
+        ContinueNavigationAction navigation = event.postpone();
+        new ConfirmDialog("Unsaved changes", "Leave and discard your changes?",
+                "Leave", e -> navigation.proceed(),
+                "Stay", e -> navigation.cancel()).open();
+    }
+}
+```
+
+Always call `cancel()` when the user stays. Otherwise the postponed navigation stays pending, and links in the application stop working until the page is reloaded. `beforeLeave` only sees navigation inside the application, including the browser's back button and a route parameter change that reuses the view. For reloads and closed tabs, find the "Protect Unsaved Changes" guide with `search_vaadin_docs`, and turn its browser warning on and off from an effect on `viewModel.dirty()`.
 
 ### Route parameters
 
@@ -250,7 +285,15 @@ public void setParameter(BeforeEvent event, Long ticketId) {
 
 ### Background work
 
-Local signals are thread-safe, so the ViewModel can set them from a background thread without `UI.access()`. The application needs `@Push` for the change to reach the browser without a user action. Keep loading, result, and error in one signal, for example a sealed `Loading | Loaded | Failed` type, so a single `set()` keeps them consistent; local signals don't support transactions. The ViewModel has no detach event, so the view cancels running work: `addDetachListener(e -> viewModel.cancelLoading())`. When the user can start a new request before the last one answers, ignore answers to requests that are no longer the latest.
+Local signals are thread-safe, so the ViewModel can set them from the thread that completes a `CompletableFuture`, without `UI.access()`. For the change to reach the browser without a user action, the application needs `@Push`.
+
+- **One signal per async value.** Keep loading, result, and error in one signal, for example a sealed `Loading | Loaded | Failed` type, so a single `set()` changes them together; local signals don't support transactions.
+- **The latest request wins.** Number the requests and drop answers to any request that isn't the latest. Otherwise a slow answer to an old search overwrites a newer one.
+- **The view cancels.** The ViewModel has no detach event, so the view calls `addDetachListener(e -> viewModel.cancel())`.
+- **The view owns timers.** A periodic refresh has to stop when the view goes away. Start it on attach and stop it on detach, with `UI.setPollInterval(...)` or a scheduled task, and let it call a ViewModel command.
+- **Slow commands are state too.** Set a `saving` signal, derive `canSave` from it so the button disables itself, and set the outcome when the work completes.
+
+In a browserless test, a signal set on another thread reaches the components only after `window.runPendingSignalsTasks()`. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code and its tests.
 
 ### When the ViewModel grows
 
@@ -290,10 +333,13 @@ Track these steps as TODOs.
 
 - A ViewModel method returns a `ValueSignal` or `ListSignal`. The view can then change state without a command and skip its rules.
 - A ViewModel imports a component, `UI`, `Notification`, or `Binder`.
+- A view with a ViewModel binds its fields with `Binder`. The ViewModel's rules can't see the form's values or validity.
 - A ViewModel is a Spring bean (`@Component`, `@UIScope`, `@SpringComponent`). Its lifetime no longer matches the view's, and state leaks between views or browser tabs.
 - `get()` in a command, a listener, or a test throws `IllegalStateException`. Use `peek()` there.
 - A record or bean read with `peek()` is mutated in place, so nothing updates. Use `update(...)`, or `modify(...)` for a mutable bean.
 - A command or an effect keeps a second signal in step with another. Make it a derived signal.
+- A computed signal calls a service or a repository. It runs on every read; load data in a command instead.
+- A background answer is applied without checking that its request is still the latest.
 - `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection.
 - A write callback rejects a value and expects the component to revert.
 - An effect is owned by a component that isn't attached, such as a closed dialog, so it never runs.
