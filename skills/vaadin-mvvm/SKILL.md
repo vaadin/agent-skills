@@ -201,16 +201,29 @@ grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
 
 The identifier provider keeps the row selected when a save replaces its record. A grid without a bound selection can use `Signal.effect(grid, () -> grid.setItems(viewModel.tickets().get()))`.
 
-For data too large to load at once, the ViewModel keeps the filter as state and offers paged queries that read it with `peek()`. The view refreshes the grid when the filter changes:
+### Paged data
+
+For data too large to load at once, the ViewModel doesn't hand out a data provider. A data provider belongs to one component, and several components may show the same ViewModel. Instead, the ViewModel offers two things:
+
+- `fetch(offset, limit)` and `count()`, plain methods that read the filter with `peek()`.
+- One `query()` signal that changes whenever the list's contents would. It holds the filter and a revision number that commands bump after they change data.
+
+Each component that shows the list builds its own data provider and refreshes it whenever the query changes:
 
 ```java
 grid.setItems(query -> viewModel.fetch(query.getOffset(), query.getLimit()),
-        query -> viewModel.count());
+        query -> viewModel.count())
+        .setIdentifierProvider(Ticket::id);
 Signal.effect(grid, () -> {
-    viewModel.searchText().get();
+    viewModel.query().get();
     grid.getDataProvider().refreshAll();
 });
 ```
+
+The effect ends when its grid is detached, so no component has to unregister. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code and two variants:
+
+- Pass the query to `fetch` as the data provider's filter, so `fetch` works only from its arguments.
+- Derive the revision from a shared signal in the Model, so other users' saves refresh the list too.
 
 ### Forms without Binder
 
@@ -341,6 +354,7 @@ Track these steps as TODOs.
 - A computed signal calls a service or a repository. It runs on every read; load data in a command instead.
 - A background answer is applied without checking that its request is still the latest.
 - `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection.
+- A ViewModel exposes a `DataProvider`, or keeps references to the views' data providers to refresh them.
 - A write callback rejects a value and expects the component to revert.
 - An effect is owned by a component that isn't attached, such as a closed dialog, so it never runs.
 - A ViewModel for a simple form that only forwards every call to a service.

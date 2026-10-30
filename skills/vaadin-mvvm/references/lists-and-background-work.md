@@ -1,6 +1,6 @@
-# Editable Lists and Background Work
+# Editable Lists, Paged Data, and Background Work
 
-Two patterns that go beyond the ticket-triage example. The code compiles against Vaadin 25.3, and its tests pass.
+Three patterns that go beyond the ticket-triage example. The code compiles against Vaadin 25.3, and its tests pass.
 
 ## Editable lists
 
@@ -101,6 +101,183 @@ rows.bindChildren(viewModel.lines(), line -> {
 ```
 
 A list that is only shown, or reloaded as a whole, doesn't need any of this. Keep it as an immutable `List` in a `ValueSignal` and show it in a `Grid`.
+
+## Paged data
+
+A grid that loads its rows page by page needs a data provider, and a data provider belongs to one component. Several components may show the same ViewModel, so the ViewModel doesn't hand out a data provider. It offers what every data provider needs instead:
+
+- `fetch(offset, limit)` and `count()`, plain methods that read the filter with `peek()`.
+- `query()`, one signal that changes whenever the list's contents would. It holds the filter and a revision number that commands bump after they change data.
+
+The Model is a `PagedTicketService` with `search(text, offset, limit)`, `count(text)`, and `save(ticket)`.
+
+```java
+/** What the ticket list shows: the filter, and how often the data has changed. */
+record TicketQuery(String text, long revision) {
+
+    TicketQuery withText(String text) {
+        return new TicketQuery(text, revision);
+    }
+
+    TicketQuery nextRevision() {
+        return new TicketQuery(text, revision + 1);
+    }
+}
+```
+
+```java
+import java.util.stream.Stream;
+
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+class PagedTicketsViewModel {
+
+    private final PagedTicketService ticketService;
+
+    private final ValueSignal<TicketQuery> query = new ValueSignal<>(new TicketQuery("", 0));
+    private final ValueSignal<Ticket> selected = new ValueSignal<>(null);
+
+    PagedTicketsViewModel(PagedTicketService ticketService) {
+        this.ticketService = ticketService;
+    }
+
+    /** Changes whenever the list's contents would: a new filter or a saved ticket. */
+    Signal<TicketQuery> query() {
+        return query.asReadonly();
+    }
+
+    Signal<String> searchText() {
+        return query.map(TicketQuery::text);
+    }
+
+    Signal<Ticket> selected() {
+        return selected.asReadonly();
+    }
+
+    Signal<Boolean> canResolve() {
+        return selected.map(t -> t != null && t.status() != Status.RESOLVED);
+    }
+
+    Stream<Ticket> fetch(int offset, int limit) {
+        return ticketService.search(query.peek().text(), offset, limit).stream();
+    }
+
+    int count() {
+        return ticketService.count(query.peek().text());
+    }
+
+    void search(String text) {
+        query.update(q -> q.withText(text));
+    }
+
+    void select(Ticket ticket) {
+        selected.set(ticket);
+    }
+
+    void resolveSelected() {
+        Ticket saved = ticketService.save(selected.peek().withStatus(Status.RESOLVED));
+        selected.set(saved);
+        query.update(TicketQuery::nextRevision);
+    }
+}
+```
+
+Each component that shows the tickets builds its own data provider from these and refreshes it from an effect. The view passes the same ViewModel to each of them, and any number can observe it. Each effect ends when its grid is detached, so nothing has to unregister:
+
+```java
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.signals.Signal;
+
+/** One of the components that show the tickets; each builds its own data provider. */
+class TicketList extends VerticalLayout {
+
+    TicketList(PagedTicketsViewModel viewModel) {
+        Grid<Ticket> grid = new Grid<>();
+        grid.addColumn(Ticket::title).setHeader("Title");
+        grid.addColumn(Ticket::status).setHeader("Status");
+        grid.setItems(query -> viewModel.fetch(query.getOffset(), query.getLimit()),
+                query -> viewModel.count())
+                .setIdentifierProvider(Ticket::id);
+        Signal.effect(grid, () -> {
+            viewModel.query().get();
+            grid.getDataProvider().refreshAll();
+        });
+        grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
+        add(grid);
+    }
+}
+```
+
+- Set the items once and refresh them. `refreshAll()` keeps the bound selection, which `setItems()` would clear.
+- The identifier provider keeps the selected row selected when a save replaces its record.
+- The effect reads `query()` only to depend on it.
+
+### Variant: pass the query to fetch
+
+If you'd rather have `fetch` and `count` work only from their arguments, have them take the query, and hand the query to the data provider as its filter. Setting the filter refreshes the provider, so the effect doesn't need a separate read. It costs a few more lines in every view.
+
+```java
+Stream<Ticket> fetch(TicketQuery query, int offset, int limit) {
+    return ticketService.search(query.text(), offset, limit).stream();
+}
+
+int count(TicketQuery query) {
+    return ticketService.count(query.text());
+}
+```
+
+```java
+ConfigurableFilterDataProvider<Ticket, Void, TicketQuery> tickets = new CallbackDataProvider<Ticket, TicketQuery>(
+        query -> viewModel.fetch(query.getFilter().orElseThrow(),
+                query.getOffset(), query.getLimit()),
+        query -> viewModel.count(query.getFilter().orElseThrow()),
+        Ticket::id).withConfigurableFilter();
+grid.setItems(tickets);
+Signal.effect(grid, () -> tickets.setFilter(viewModel.query().get()));
+```
+
+The effect sets the filter before the grid's first fetch, so `getFilter().orElseThrow()` is safe.
+
+### Variant: changes by other users
+
+The revision above counts only this ViewModel's own saves. To refresh the list when any user saves, let the Model count the saves in a shared signal:
+
+```java
+private final SharedNumberSignal changes = new SharedNumberSignal();
+
+public Ticket save(Ticket ticket) {
+    store.put(ticket.id(), ticket);
+    changes.incrementBy(1);
+    return ticket;
+}
+
+/** Changes whenever any user saves a ticket. */
+public Signal<Integer> changes() {
+    return changes.mapIntValue(count -> count);
+}
+```
+
+The ViewModel derives its query from its own filter and the Model's signal. It no longer bumps a revision itself, because its own saves go through the service too:
+
+```java
+private final Signal<TicketQuery> query;
+
+LiveTicketsViewModel(PagedTicketService ticketService) {
+    this.ticketService = ticketService;
+    query = Signal.computed(() -> new TicketQuery(searchText.get(),
+            ticketService.changes().get()));
+}
+```
+
+- The Model now depends on Vaadin's signal classes.
+- For the other users' lists to refresh without an action of their own, the application needs `@Push`.
+
+### Testing it
+
+- A browserless grid locator reads rows straight from the data provider, so it shows current data even when no refresh happened. To test that a list refreshes, count the data provider's refresh events: `grid.getDataProvider().addDataProviderListener(e -> refreshes.incrementAndGet())`.
+- Another user's save reaches an observing window only after `window.runPendingSignalsTasks()`.
 
 ## Background work
 
