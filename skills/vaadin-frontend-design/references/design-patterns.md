@@ -1,6 +1,6 @@
 # Frontend Design Patterns Quick Reference
 
-For complete theme token tables (colors, typography, spacing, shadows, border radius) and component theme variant comparisons, see the **theming** skill's `references/theming-patterns.md`.
+For complete theme token tables (colors, typography, spacing, shadows, border radius), see the **aura-theme** skill's `references/property-values.md` (Aura) or call the Vaadin MCP tool `get_theme_css_properties` (Aura, Lumo, or base). For a component's theme variants, call `get_component_styling`.
 
 ## Common `::part()` Selectors
 

@@ -46,7 +46,7 @@ Lumo additionally provides:
 
 Always work top-down: change a theme property before writing component-specific CSS, and use a theme variant before writing custom styles.
 
-For full details on theme selection, loading, and all design tokens, see the **theming** skill.
+For the full set of Aura design tokens, see the **aura-theme** skill and its `references/property-values.md`. For Lumo tokens and the `--vaadin-*` base properties shared by both themes, call `get_theme_css_properties` with `theme` set to `"lumo"` or `"base"`. For theme selection and loading, use `search_vaadin_docs`.
 
 ## Typography
 
@@ -158,7 +158,7 @@ html {
 
 **Dark mode:**
 
-Both themes support the `@ColorScheme` annotation. For custom dark mode colors, see the theming skill for theme-specific selectors (`[theme~="dark"]` for Lumo, `-light`/`-dark` suffixed properties for Aura).
+Both themes support the `@ColorScheme` annotation. For custom dark mode colors, Aura uses `-light`/`-dark` suffixed properties (see the **aura-theme** skill). Lumo uses the CSS `light-dark()` function, e.g. `--lumo-primary-color: light-dark(blue, lightskyblue)`, which works in every color scheme mode; the `[theme~="dark"]` selector only matches when the scheme is set to `ColorScheme.Value.DARK`.
 
 **Accent and semantic colors from Java (Lumo utility classes):**
 
@@ -528,4 +528,4 @@ public class DashboardView extends VerticalLayout {
 
 ## Detailed Reference
 
-For component `::part()` selectors, CSS animation recipes, and color palette recipes, see `references/design-patterns.md`. For complete theme token tables and variant comparisons, see the **theming** skill's `references/theming-patterns.md`.
+For component `::part()` selectors, CSS animation recipes, and color palette recipes, see `references/design-patterns.md`. For complete theme token tables, see the **aura-theme** skill's `references/property-values.md` (Aura) or call `get_theme_css_properties` (Aura, Lumo, or base). For a component's theme variants, call `get_component_styling`.
