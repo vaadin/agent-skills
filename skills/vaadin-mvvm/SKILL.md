@@ -174,7 +174,7 @@ public class TicketsView extends HorizontalLayout {
 ```
 
 1. **The `@Route` class creates the ViewModel** in its constructor and keeps it in a `private final` field. Spring or Quarkus injects the services into the view's constructor, and the view passes them on.
-2. **Bind, don't push.** Use `bindText`, `bindVisible`, `bindEnabled`, `bindReadOnly`, `bindValue(viewModel.x(), viewModel::setX)`, `bindChildren`, and `grid.asSingleSelect().bindValue(...)`. Use `Signal.effect(owner, ...)` only for what has no bind method, such as `setItems`, `setInvalid`, or `setOpened`.
+2. **Bind, don't push.** Use `bindText`, `bindVisible`, `bindEnabled`, `bindReadOnly`, `bindValue(viewModel.x(), viewModel::setX)`, `bindChildren`, and `grid.asSingleSelect().bindValue(...)`. Vaadin has no bind method yet for a grid's items or a field's error. For those, use `bindItems` and `bindError` from the application's `SignalBindings` class. Write `Signal.effect(owner, ...)` yourself only for the rest, such as `setOpened`.
 3. **Listeners only call commands.** A listener calls one command and at most acts on its result. It doesn't call services or decide anything the ViewModel could decide. When a framework callback needs an answer at once, such as `beforeLeave` asking whether to stop navigation, the view may read a derived signal with `peek()`: `viewModel.dirty().peek()`.
 4. **The view does what only a UI can do:** notifications, dialogs, navigation, focus, and reading route parameters.
 5. **Child components receive state; they never create it.** Pass a child component the ViewModel, or only the signals and commands it needs, which keeps it reusable. Only the route view creates a ViewModel, or a parent ViewModel creates its child ViewModels.
@@ -186,20 +186,14 @@ public class TicketsView extends HorizontalLayout {
 - A list that is reloaded as a whole, such as search results, is a `ValueSignal<List<T>>` holding an immutable list.
 - A list the user edits entry by entry, such as an order's lines, is a `ListSignal<T>` that the view renders with `bindChildren`. `ListSignal` has no `asReadonly()`, so expose the entries as `Signal<List<Signal<T>>>` with `lines.map(entries -> List.<Signal<Line>>copyOf(entries))`. Commands such as `setQuantity(Signal<Line> line, Integer quantity)` take an entry and find it by identity. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code.
 
-When a grid's selection is bound, set its items once and refresh them from an effect. `grid.setItems(...)` replaces the data provider, which always clears the selection, and the selection binding passes that to the ViewModel as a `null` selection:
+Bind a grid to a list signal with `bindItems`, and its selection with `bindValue`:
 
 ```java
-List<Ticket> rows = new ArrayList<>();
-grid.setItems(rows).setIdentifierProvider(Ticket::id);
-Signal.effect(grid, () -> {
-    rows.clear();
-    rows.addAll(viewModel.tickets().get());
-    grid.getDataProvider().refreshAll();
-});
+bindItems(grid, viewModel.tickets()).setIdentifierProvider(Ticket::id);
 grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
 ```
 
-The identifier provider keeps the row selected when a save replaces its record. A grid without a bound selection can use `Signal.effect(grid, () -> grid.setItems(viewModel.tickets().get()))`.
+`bindItems` sets the items once and refreshes them on every change. Calling `grid.setItems(...)` again from an effect would replace the data provider, which always clears the selection, and the selection binding would pass that to the ViewModel as a `null` selection. The identifier provider keeps the row selected when a save replaces its record.
 
 ### Paged data
 
@@ -208,19 +202,14 @@ For data too large to load at once, the ViewModel doesn't hand out a data provid
 - `fetch(offset, limit)` and `count()`, plain methods that read the filter with `peek()`.
 - One `query()` signal that changes whenever the list's contents would. It holds the filter and a revision number that commands bump after they change data.
 
-Each component that shows the list builds its own data provider and refreshes it whenever the query changes:
+Each component that shows the list builds its own data provider with `bindItems`, which refreshes it whenever the query changes:
 
 ```java
-grid.setItems(query -> viewModel.fetch(query.getOffset(), query.getLimit()),
-        query -> viewModel.count())
+bindItems(grid, viewModel.query(), viewModel::fetch, viewModel::count)
         .setIdentifierProvider(Ticket::id);
-Signal.effect(grid, () -> {
-    viewModel.query().get();
-    grid.getDataProvider().refreshAll();
-});
 ```
 
-The effect ends when its grid is detached, so no component has to unregister. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code and two variants:
+The refresh effect ends when its grid is detached, so no component has to unregister. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code and two variants:
 
 - Pass the query to `fetch` as the data provider's filter, so `fetch` works only from its arguments.
 - Derive the revision from a shared signal in the Model, so other users' saves refresh the list too.
@@ -237,19 +226,24 @@ What `Binder` would have done moves into the ViewModel:
 - **Conversion.** Use typed fields — `IntegerField`, `BigDecimalField`, `DatePicker`, `ComboBox<T>` — so values arrive typed. A command converts what's left, such as a code typed as text, and an error signal reports input it can't convert. A cleared or unparseable number arrives as `null`. Store it and let a rule report it; see rule 10.
 - **When errors appear.** A derived error shows as soon as the draft breaks the rule, even on a new, empty form. To hold errors back until the user tries to save, keep a `submitted` signal that `save()` sets, and have each error signal return `null` while it is false.
 
-One helper in the view shows any error signal on any field:
+`bindError` from `SignalBindings` shows any error signal on any field, and turns on manual validation for it:
 
 ```java
-private static <F extends Component & HasValidation> void bindError(F field,
-        Signal<String> error) {
-    field.setManualValidation(true);
-    Signal.effect(field, () -> {
-        String message = error.get();
-        field.setInvalid(message != null);
-        field.setErrorMessage(message);
-    });
-}
+title.bindValue(viewModel.title(), viewModel::setTitle);
+bindError(title, viewModel.titleError());
 ```
+
+### SignalBindings
+
+Vaadin has no bind methods yet for a grid's items or a field's error. Keep three small helpers in one class in the application, and import them statically in every view that has a ViewModel:
+
+| Helper | Binds |
+|---|---|
+| `bindItems(grid, items)` | A `Signal<List<T>>` to a grid's items |
+| `bindItems(grid, query, fetch, count)` | Paged data to a grid, refreshed whenever `query` changes |
+| `bindError(field, error)` | A `Signal<String>` of error messages to a field |
+
+Each `bindItems` returns the grid's data view, like `setItems()` does. When a grid needs something the helpers don't do, write the effect yourself. If the project has no `SignalBindings` yet, copy it from [references/signal-bindings.md](references/signal-bindings.md). The item helpers are for grids only: other components treat refreshed items in their own ways, and a `Select`, for example, clears its value.
 
 ### Steps and modes
 
@@ -339,7 +333,7 @@ Track these steps as TODOs.
 1. **Check the Vaadin version and pick the level.** Signals need 25.1 or later. Tell the user the level and the reason. Stop at level 1 or 2 when that's enough.
 2. **Write the ViewModel's API first:** state signals, derived signals, and commands with their result types, named in the domain's words. For a complex view, show the API to the user. It is the view's behaviour on one screen.
 3. **Implement the ViewModel and its unit tests**, and run them until they pass.
-4. **Write the view:** layout, bindings, listeners that call commands, and effects for what has no bind method.
+4. **Write the view:** layout, bindings, listeners that call commands, and effects for what has no bind method. Use `SignalBindings` for grids and field errors, and copy the class into the project if it doesn't have one yet.
 5. **Run the tests:** the ViewModel tests, and browserless tests of the use cases if the project has them.
 
 ## Red flags
@@ -353,7 +347,8 @@ Track these steps as TODOs.
 - A command or an effect keeps a second signal in step with another. Make it a derived signal.
 - A computed signal calls a service or a repository. It runs on every read; load data in a command instead.
 - A background answer is applied without checking that its request is still the latest.
-- `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection.
+- `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection. Use `bindItems`.
+- A `Select` whose value is bound gets its items refreshed. It clears its value, and the ViewModel receives `null`.
 - A ViewModel exposes a `DataProvider`, or keeps references to the views' data providers to refresh them.
 - A write callback rejects a value and expects the component to revert.
 - An effect is owned by a component that isn't attached, such as a closed dialog, so it never runs.

@@ -235,14 +235,12 @@ class TicketsViewModel {
 
 ## 3. The view
 
-Creates the ViewModel, lays out the components, and binds them. Listeners call one command each. Effects appear only where no bind method exists: the grid's items, the title field's error, and the dialog's opened state. The `bindError` helper shows a ViewModel's error on any field; copy it into each view or into a shared utility class.
+Creates the ViewModel, lays out the components, and binds them. Listeners call one command each. The grid's items and the title field's error are bound with `bindItems` and `bindError` from the application's [`SignalBindings`](signal-bindings.md) class. The only effect the view writes itself opens the discard dialog.
 
 ```java
-import java.util.ArrayList;
-import java.util.List;
+import static com.example.SignalBindings.bindError;
+import static com.example.SignalBindings.bindItems;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -283,14 +281,7 @@ public class TicketsView extends HorizontalLayout implements BeforeLeaveObserver
         grid.addColumn(Ticket::title).setHeader("Title");
         grid.addColumn(Ticket::status).setHeader("Status");
         grid.addColumn(Ticket::assignee).setHeader("Assignee");
-        // Set the items once and refresh them: setItems() would clear the selection.
-        List<Ticket> rows = new ArrayList<>();
-        grid.setItems(rows).setIdentifierProvider(Ticket::id);
-        Signal.effect(grid, () -> {
-            rows.clear();
-            rows.addAll(viewModel.tickets().get());
-            grid.getDataProvider().refreshAll();
-        });
+        bindItems(grid, viewModel.tickets()).setIdentifierProvider(Ticket::id);
         grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
 
         return new VerticalLayout(new HorizontalLayout(search, statusFilter), grid);
@@ -335,17 +326,6 @@ public class TicketsView extends HorizontalLayout implements BeforeLeaveObserver
         Signal.effect(this, () -> dialog.setOpened(viewModel.confirmingDiscard().get()));
     }
 
-    /** Shows the ViewModel's error for a field; null means no error. */
-    private static <F extends Component & HasValidation> void bindError(F field,
-            Signal<String> error) {
-        field.setManualValidation(true);
-        Signal.effect(field, () -> {
-            String message = error.get();
-            field.setInvalid(message != null);
-            field.setErrorMessage(message);
-        });
-    }
-
     @Override
     public void beforeLeave(BeforeLeaveEvent event) {
         if (viewModel.dirty().peek()) {
@@ -360,7 +340,7 @@ public class TicketsView extends HorizontalLayout implements BeforeLeaveObserver
 
 Notes:
 
-- The grid's items are set once and refreshed from an effect, because `setItems()` would clear the bound selection on every reload. The identifier provider keeps the saved ticket's row selected after its record is replaced.
+- `bindItems` sets the grid's items once and refreshes them, because `setItems()` would clear the bound selection on every reload. The identifier provider keeps the saved ticket's row selected after its record is replaced.
 - The discard dialog's effect is owned by the view, not by the dialog: a closed dialog isn't attached, and an effect runs only while its owner is attached.
 - The view never checks state in its listeners. Even the Discard button just calls `discardChanges()`: with nothing else selected, that reopens the current ticket and drops the edits.
 - `beforeLeave` is the exception: the router needs an answer at once, so the view reads `dirty()` with `peek()`. The postponed navigation is a router object, so it stays in the view, and so does the dialog that resumes it.

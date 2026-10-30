@@ -183,12 +183,13 @@ class PagedTicketsViewModel {
 }
 ```
 
-Each component that shows the tickets builds its own data provider from these and refreshes it from an effect. The view passes the same ViewModel to each of them, and any number can observe it. Each effect ends when its grid is detached, so nothing has to unregister:
+Each component that shows the tickets builds its own data provider from these, with `bindItems` from [`SignalBindings`](signal-bindings.md). The view passes the same ViewModel to each of them, and any number can observe it. The refresh effect ends when its grid is detached, so nothing has to unregister:
 
 ```java
+import static com.example.SignalBindings.bindItems;
+
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.signals.Signal;
 
 /** One of the components that show the tickets; each builds its own data provider. */
 class TicketList extends VerticalLayout {
@@ -197,26 +198,20 @@ class TicketList extends VerticalLayout {
         Grid<Ticket> grid = new Grid<>();
         grid.addColumn(Ticket::title).setHeader("Title");
         grid.addColumn(Ticket::status).setHeader("Status");
-        grid.setItems(query -> viewModel.fetch(query.getOffset(), query.getLimit()),
-                query -> viewModel.count())
+        bindItems(grid, viewModel.query(), viewModel::fetch, viewModel::count)
                 .setIdentifierProvider(Ticket::id);
-        Signal.effect(grid, () -> {
-            viewModel.query().get();
-            grid.getDataProvider().refreshAll();
-        });
         grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
         add(grid);
     }
 }
 ```
 
-- Set the items once and refresh them. `refreshAll()` keeps the bound selection, which `setItems()` would clear.
+- `bindItems` sets the data provider once and calls `refreshAll()` whenever `query()` changes. That keeps the bound selection, which `setItems()` would clear.
 - The identifier provider keeps the selected row selected when a save replaces its record.
-- The effect reads `query()` only to depend on it.
 
 ### Variant: pass the query to fetch
 
-If you'd rather have `fetch` and `count` work only from their arguments, have them take the query, and hand the query to the data provider as its filter. Setting the filter refreshes the provider, so the effect doesn't need a separate read. It costs a few more lines in every view.
+If you'd rather have `fetch` and `count` work only from their arguments, have them take the query, and hand the query to the data provider as its filter. Setting the filter refreshes the provider. `bindItems` doesn't cover this variant, so each view writes the data provider and the effect itself:
 
 ```java
 Stream<Ticket> fetch(TicketQuery query, int offset, int limit) {
