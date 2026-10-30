@@ -1,6 +1,6 @@
 # Vaadin Agent Skills
 
-Agent skills for helping coding agents style, design, lay out, and test Vaadin 25 applications.
+Agent skills for helping coding agents style, design, lay out, test, and review Vaadin 25 applications.
 
 These skills can be installed as a plugin from the [`vaadin/agent-marketplace`](https://github.com/vaadin/agent-marketplace) marketplace (Claude and Codex) or with the [`skills` CLI](https://github.com/vercel-labs/skills) from `vercel-labs/skills`.
 
@@ -128,6 +128,7 @@ connected.
 | `vaadin-frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
 | `vaadin-browserless-testing` | Write browserless tests that verify use cases without a browser, readable as the use case itself. |
+| `vaadin-usage-review` | Review Vaadin code for workarounds where an official Vaadin API or component exists, verified against the Vaadin MCP. Reports only; never edits. |
 
 ## Repository Structure
 
