@@ -173,7 +173,7 @@ public class TicketsView extends HorizontalLayout {
 }
 ```
 
-1. **The `@Route` class creates the ViewModel** in its constructor and keeps it in a `private final` field. Spring or Quarkus injects the services into the view's constructor, and the view passes them on.
+1. **The `@Route` class creates the ViewModel** in its constructor and keeps it in a `private final` field. Spring or Quarkus injects the services into the view's constructor, and the view passes them on. A field initializer can't use the ViewModel, not even inside a lambda: Java reports that the final field might not have been initialized. Create such fields, such as event listeners, in the constructor after the ViewModel.
 2. **Bind, don't push.** Use `bindText`, `bindVisible`, `bindEnabled`, `bindReadOnly`, `bindValue(viewModel.x(), viewModel::setX)`, `bindChildren`, and `grid.asSingleSelect().bindValue(...)`. Vaadin has no bind method yet for a grid's items or a field's error. For those, use `bindItems` and `bindError` from the application's `SignalBindings` class. Write `Signal.effect(owner, ...)` yourself only for the rest, such as `setOpened`.
 3. **Listeners only call commands.** A listener calls one command and at most acts on its result. It doesn't call services or decide anything the ViewModel could decide. When a framework callback needs an answer at once, such as `beforeLeave` asking whether to stop navigation, the view may read a derived signal with `peek()`: `viewModel.dirty().peek()`.
 4. **The view does what only a UI can do:** notifications, dialogs, navigation, focus, and reading route parameters.
@@ -194,6 +194,26 @@ grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
 ```
 
 `bindItems` sets the items once and refreshes them on every change. Calling `grid.setItems(...)` again from an effect would replace the data provider, which always clears the selection, and the selection binding would pass that to the ViewModel as a `null` selection. The identifier provider keeps the row selected when a save replaces its record.
+
+Keep a selection as IDs, and derive the selected rows from the IDs and the current list. After a reload, the derived selection then holds the rows' latest data, and a row that is gone drops out of it without a command having to prune it. This matters most for a multi-select grid, whose commands act on every selected row:
+
+```java
+private final ValueSignal<Set<Long>> selectedIds = new ValueSignal<>(Set.of());
+private final Signal<Set<Line>> selectedLines = Signal.computed(() -> {
+    var ids = selectedIds.get();
+    return lines.get().stream().filter(l -> ids.contains(l.id())).collect(Collectors.toUnmodifiableSet());
+});
+
+void selectLines(Set<Line> selection) {
+    selectedIds.set(selection.stream().map(Line::id).collect(Collectors.toUnmodifiableSet()));
+}
+```
+
+```java
+grid.asMultiSelect().bindValue(viewModel.selectedLines(), viewModel::selectLines);
+```
+
+The commands read `selectedLines().peek()`, never the IDs, so they never act on a row that is no longer listed.
 
 ### Paged data
 
@@ -243,7 +263,17 @@ Vaadin has no bind methods yet for a grid's items or a field's error. Keep three
 | `bindItems(grid, query, fetch, count)` | Paged data to a grid, refreshed whenever `query` changes |
 | `bindError(field, error)` | A `Signal<String>` of error messages to a field |
 
-Each `bindItems` returns the grid's data view, like `setItems()` does. When a grid needs something the helpers don't do, write the effect yourself. If the project has no `SignalBindings` yet, copy it from [references/signal-bindings.md](references/signal-bindings.md). The item helpers are for grids only: other components treat refreshed items in their own ways, and a `Select`, for example, clears its value.
+Each `bindItems` returns the grid's data view, like `setItems()` does. When a grid needs something the helpers don't do, write the effect yourself. If the project has no `SignalBindings` yet, copy it from [references/signal-bindings.md](references/signal-bindings.md). The item helpers are for grids only: other components treat refreshed items in their own ways, and a `Select` or a `ComboBox`, for example, clears its value.
+
+When a `ComboBox`'s or a `Select`'s options are a ViewModel signal that changes while its value is bound, as when the options are reloaded each time another record opens, the clearing reaches the write callback as `null`. Have the ViewModel empty the draft before it changes the options, and make the field commands do nothing while there is no draft. The clearing is then ignored, and setting the draft afterwards puts the value back:
+
+```java
+private void show(Ticket ticket) {
+    draft.set(null);            // the field commands ignore the clearing
+    agents.set(agentService.findAll());
+    draft.set(ticket);
+}
+```
 
 ### Steps and modes
 
@@ -302,9 +332,41 @@ Local signals are thread-safe, so the ViewModel can set them from the thread tha
 
 In a browserless test, a signal set on another thread reaches the components only after `window.runPendingSignalsTasks()`. [references/lists-and-background-work.md](references/lists-and-background-work.md) has the complete code and its tests.
 
+### Changes from the Model
+
+When the Model announces changes through listeners, such as Spring application events or a service's `addListener`, subscribing is the view's job, just like a timer. The ViewModel has no attach or detach event, and a subscription that outlives the view leaks it. The view subscribes on attach, unsubscribes on detach, and calls a ViewModel command that reloads, named after what happened:
+
+```java
+@Override
+protected void onAttach(AttachEvent attachEvent) {
+    var ui = attachEvent.getUI();
+    registration = ticketService.addChangeListener(event -> ui.access(viewModel::ticketsChanged));
+    viewModel.refresh(); // changes made while the view was detached
+}
+
+@Override
+protected void onDetach(DetachEvent detachEvent) {
+    registration.remove();
+}
+```
+
+- **One subscription, in the route view.** Child components don't subscribe on their own; the route view routes each event to the ViewModel, and the ViewModel decides which parts reload.
+- **The event may come from another user's request.** Run the command through `ui.access(...)`, or the project's own helper for that, so it runs with this view's session locked. A local signal refuses to be changed from another session.
+- **Testing.** The ViewModel test calls the command directly, standing in for the event: `viewModel.ticketsChanged()`.
+- **A shared signal in the Model is the alternative,** as in the paged data variant: then no listener is needed, but the Model depends on Vaadin's signal classes.
+
 ### When the ViewModel grows
 
 If a ViewModel holds unrelated groups of state, split it along the parts of the view. The route view's ViewModel creates child ViewModels, such as `FiltersViewModel` and `EditorViewModel`, and exposes them. Each child component binds to its own. Rules that span parts stay in the parent.
+
+When one part follows another, the parent passes the change on in its command. It doesn't share a signal for the child to follow in an effect:
+
+```java
+void select(Long ticketId) {
+    selected.set(ticketId);
+    editor.open(ticketId);
+}
+```
 
 ## Testing
 
@@ -348,7 +410,9 @@ Track these steps as TODOs.
 - A computed signal calls a service or a repository. It runs on every read; load data in a command instead.
 - A background answer is applied without checking that its request is still the latest.
 - `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection. Use `bindItems`.
-- A `Select` whose value is bound gets its items refreshed. It clears its value, and the ViewModel receives `null`.
+- A `Select` or `ComboBox` whose value is bound gets its items refreshed while the draft is set. It clears its value, and the ViewModel receives `null`.
+- A child component or a child ViewModel follows a parent's signal in an effect to load its own data. Make it a command the parent calls.
+- A ViewModel subscribes to the Model's events, or a child component subscribes on its own. The route view subscribes and calls ViewModel commands.
 - A ViewModel exposes a `DataProvider`, or keeps references to the views' data providers to refresh them.
 - A write callback rejects a value and expects the component to revert.
 - An effect is owned by a component that isn't attached, such as a closed dialog, so it never runs.

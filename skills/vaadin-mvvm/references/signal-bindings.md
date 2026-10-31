@@ -103,4 +103,4 @@ bindError(title, viewModel.titleError());
 
 ## Grids only
 
-The item helpers take a `Grid` on purpose, because other components react to refreshed items in their own ways. A `Select` clears its value whenever its items change, and a bound value signal then receives `null`. When a selection component's options come from a ViewModel, set them once. If they must change while the view is open, first check what the component does with its value. `VirtualList` still uses the older `setDataProvider` API.
+The item helpers take a `Grid` on purpose, because other components react to refreshed items in their own ways. A `Select` or a `ComboBox` clears its value whenever its items change, and the write callback of a bound value then receives `null`. When a selection component's options come from a ViewModel, set them once. If they must change while the view is open, have the ViewModel empty the draft before it changes them, as described under SignalBindings in the skill. `VirtualList` still uses the older `setDataProvider` API.
