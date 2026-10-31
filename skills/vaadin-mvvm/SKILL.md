@@ -410,6 +410,7 @@ Track these steps as TODOs.
 - A computed signal calls a service or a repository. It runs on every read; load data in a command instead.
 - A background answer is applied without checking that its request is still the latest.
 - `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection. Use `bindItems`.
+- A multi-select grid's selection mode is set after `bindItems`. Its select-all checkbox then goes stale when the rows change.
 - A `Select` or `ComboBox` whose value is bound gets its items refreshed while the draft is set. It clears its value, and the ViewModel receives `null`.
 - A child component or a child ViewModel follows a parent's signal in an effect to load its own data. Make it a command the parent calls.
 - A ViewModel subscribes to the Model's events, or a child component subscribes on its own. The route view subscribes and calls ViewModel commands.
