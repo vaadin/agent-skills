@@ -63,7 +63,9 @@ public final class SignalBindings {
      * Sets the select-all checkbox from the rows and the selection at the end
      * of the round trip, after Grid has set it. Grid sets it only when the
      * selection changes, so it goes stale when the rows change, and it shows
-     * an empty grid with an empty selection as all selected.
+     * an empty grid with an empty selection as all selected. Remove this
+     * once Grid keeps it right itself:
+     * https://github.com/vaadin/flow-components/issues/10553
      */
     private static <T> void updateSelectAllCheckbox(Grid<T> grid,
             List<T> rows) {
@@ -132,7 +134,7 @@ bindError(title, viewModel.titleError());
 
 - **Data view.** Each `bindItems` returns the grid's data view, just as `setItems()` does. Set an identifier provider on it when a save replaces an item's record, so the row stays selected, or use anything else the data view offers.
 - **Selection.** Bind the selection separately, with `grid.asSingleSelect().bindValue(...)`. The helpers keep it, because they set the items once and refresh them: `refreshAll()` keeps a selection, and `setItems()` would clear it.
-- **Select-all checkbox.** In multi-select mode, Grid works out the header's select-all checkbox only when the selection changes, and counts an empty grid as all selected. Refreshed rows would leave it stale: ticked after the last selected row leaves, or still ticked when a row is added. The in-memory `bindItems` sets it from the rows and the selection at the end of each round trip, after Grid has set it, which is why the code reaches the `GridSelectionColumn`. Call `setSelectionMode(MULTI)` before `bindItems`. The paged helper leaves the checkbox alone, because Grid hides it for lazy data unless `setSelectAllCheckboxVisibility(VISIBLE)` shows it; if you show it, update it the same way.
+- **Select-all checkbox.** In multi-select mode, Grid works out the header's select-all checkbox only when the selection changes, and counts an empty grid as all selected. Refreshed rows would leave it stale: ticked after the last selected row leaves, or still ticked when a row is added. The in-memory `bindItems` sets it from the rows and the selection at the end of each round trip, after Grid has set it, which is why the code reaches the `GridSelectionColumn`. This works around [vaadin/flow-components#10553](https://github.com/vaadin/flow-components/issues/10553); remove it once that is fixed. Call `setSelectionMode(MULTI)` before `bindItems`. The paged helper leaves the checkbox alone, because Grid hides it for lazy data unless `setSelectAllCheckboxVisibility(VISIBLE)` shows it; if you show it, update it the same way.
 - **Customizing.** When a grid needs something the helpers don't do, write the effect yourself. Examples are a configurable filter, a count estimate instead of an exact count, or a refresh of single items. Each helper is only a few lines to start from.
 
 ## Grids only
