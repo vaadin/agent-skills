@@ -21,8 +21,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Vaadin Skills",
-    "shortDescription": "Style, design, lay out, test, and review Vaadin 25 application UIs.",
-    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, building form and entity-editor layouts, writing browserless tests that read as use cases, and reviewing code for workarounds where Vaadin already has an API. It also configures the Vaadin MCP server for current documentation and API lookup.",
+    "shortDescription": "Style, design, lay out, structure, test, and review Vaadin 25 application UIs.",
+    "longDescription": "Vaadin Skills gives Codex focused guidance for Vaadin 25 development, including Aura theming, visual frontend design, building form and entity-editor layouts, structuring complex views with the MVVM pattern and signals, writing browserless tests that read as use cases, and reviewing code for workarounds where Vaadin already has an API. It also configures the Vaadin MCP server for current documentation and API lookup.",
     "developerName": "Vaadin",
     "category": "Developer Tools",
     "capabilities": [
