@@ -1,6 +1,6 @@
 # SignalBindings
 
-Vaadin has bind methods for most component properties, but not yet for a grid's items or a field's error message. Copy this class into the application, for example into the package that holds the views, and use it from every view that has a ViewModel. It compiles against Vaadin 25.3, and the examples that use it pass their tests.
+Vaadin has bind methods for most component properties, but not yet for a grid's items or a field's error message ([vaadin/flow-components#10577](https://github.com/vaadin/flow-components/issues/10577), [vaadin/flow#26829](https://github.com/vaadin/flow/issues/26829)). Replace each helper with Vaadin's own once it exists. Until then, copy this class into the application, for example into the package that holds the views, and use it from every view that has a ViewModel. It compiles against Vaadin 25.3, and the examples that use it pass their tests.
 
 ```java
 import java.io.Serializable;
@@ -38,7 +38,8 @@ public final class SignalBindings {
      * Shows the items of a list signal in a grid. The items are set once and
      * refreshed on every change, because setting them again would clear a
      * bound selection. In multi-select mode, set the selection mode first, so
-     * that the select-all checkbox is kept right too.
+     * that the select-all checkbox is kept right too. Remove this once Grid
+     * has its own: https://github.com/vaadin/flow-components/issues/10577
      *
      * @return the data view, for example to set an identifier provider
      */
@@ -89,7 +90,8 @@ public final class SignalBindings {
 
     /**
      * Shows items loaded page by page in a grid, and refreshes them whenever
-     * the query signal changes.
+     * the query signal changes. Remove this once Grid has its own:
+     * https://github.com/vaadin/flow-components/issues/10577
      *
      * @return the data view, for example to set an identifier provider
      */
@@ -106,7 +108,11 @@ public final class SignalBindings {
         return dataView;
     }
 
-    /** Shows an error signal on a field; a null error means the value is valid. */
+    /**
+     * Shows an error signal on a field; a null error means the value is valid.
+     * Remove this once fields have their own:
+     * https://github.com/vaadin/flow/issues/26829
+     */
     public static <F extends Component & HasValidation> void bindError(F field,
             Signal<String> error) {
         field.setManualValidation(true);
@@ -133,10 +139,10 @@ bindError(title, viewModel.titleError());
 ```
 
 - **Data view.** Each `bindItems` returns the grid's data view, just as `setItems()` does. Set an identifier provider on it when a save replaces an item's record, so the row stays selected, or use anything else the data view offers.
-- **Selection.** Bind the selection separately, with `grid.asSingleSelect().bindValue(...)`. The helpers keep it, because they set the items once and refresh them: `refreshAll()` keeps a selection, and `setItems()` would clear it.
+- **Selection.** Bind the selection separately, with `grid.asSingleSelect().bindValue(...)`. The helpers keep it, because they set the items once and refresh them: `refreshAll()` keeps a selection, and `setItems()` would clear it and pass `null` to the bound signal ([vaadin/flow-components#10575](https://github.com/vaadin/flow-components/issues/10575)).
 - **Select-all checkbox.** In multi-select mode, Grid works out the header's select-all checkbox only when the selection changes, and counts an empty grid as all selected. Refreshed rows would leave it stale: ticked after the last selected row leaves, or still ticked when a row is added. The in-memory `bindItems` sets it from the rows and the selection at the end of each round trip, after Grid has set it, which is why the code reaches the `GridSelectionColumn`. This works around [vaadin/flow-components#10553](https://github.com/vaadin/flow-components/issues/10553); remove it once that is fixed. Call `setSelectionMode(MULTI)` before `bindItems`. The paged helper leaves the checkbox alone, because Grid hides it for lazy data unless `setSelectAllCheckboxVisibility(VISIBLE)` shows it; if you show it, update it the same way.
 - **Customizing.** When a grid needs something the helpers don't do, write the effect yourself. Examples are a configurable filter, a count estimate instead of an exact count, or a refresh of single items. Each helper is only a few lines to start from.
 
 ## Grids only
 
-The item helpers take a `Grid` on purpose, because other components react to refreshed items in their own ways. A `Select` or a `ComboBox` clears its value whenever its items change, and the write callback of a bound value then receives `null`. When a selection component's options come from a ViewModel, set them once. If they must change while the view is open, have the ViewModel empty the draft before it changes them, as described under SignalBindings in the skill. `VirtualList` still uses the older `setDataProvider` API.
+The item helpers take a `Grid` on purpose, because other components react to changed items in their own ways. A `Select` clears its value whenever its items change, even when the selected item is still among them ([vaadin/flow-components#10576](https://github.com/vaadin/flow-components/issues/10576)). A `ComboBox` clears it when `setItems()` replaces its items, and keeps it when they're refreshed. Either way, the write callback of a bound value receives `null`. When a selection component's options come from a ViewModel, set them once. If they must change while the view is open, have the ViewModel empty the draft before it changes them, as described under SignalBindings in the skill. `VirtualList` still uses the older `setDataProvider` API.

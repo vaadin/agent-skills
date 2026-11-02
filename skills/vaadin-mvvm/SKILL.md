@@ -143,7 +143,7 @@ class TicketsViewModel {
 7. **React in commands, not in effects.** The ViewModel has no `Signal.effect`, which needs an owner component, and no `Signal.unboundEffect`, which leaks unless removed. When a filter change must reload data, the filter command does the reload.
 8. **Use `peek()` in commands and `get()` in derivations.** Calling `get()` outside a computed signal or an effect throws `IllegalStateException`.
 9. **Return one-shot outcomes; keep lasting conditions as state.** If the view must react once to a command, such as showing a notification or navigating away, the command returns the outcome: a `boolean`, an enum, or a sealed result. Anything that stays on screen, such as an error the user has to fix, a "Saving…" marker, or an open question to the user, is a signal. A failed save that only needs a notification is a returned outcome; a conflict that the form keeps showing until the user resolves it is state.
-10. **Anything a two-way component can show is state.** If a write callback ignores or rejects a value, the component keeps showing the user's value. It doesn't snap back. So when the ViewModel can't accept a change right away, it stores the change as state and settles it with a later command. In the example, clicking another ticket while there are unsaved edits sets `selected`. `confirmingDiscard` is derived from `selected` differing from `opened`, and `keepEditing()` sets `selected` back, so the grid's selection follows.
+10. **Anything a two-way component can show is state.** When a field's write callback doesn't accept a value, the field shows the signal's value again. A grid's selection doesn't: it keeps showing the row the user clicked while the signal keeps the old one ([vaadin/flow-components#10575](https://github.com/vaadin/flow-components/issues/10575)). So when the ViewModel can't accept a selection right away, it stores the new selection as state and settles it with a later command. In the example, clicking another ticket while there are unsaved edits sets `selected`. `confirmingDiscard` is derived from `selected` differing from `opened`, and `keepEditing()` sets `selected` back, so the grid's selection follows.
 
 ## The view
 
@@ -193,7 +193,7 @@ bindItems(grid, viewModel.tickets()).setIdentifierProvider(Ticket::id);
 grid.asSingleSelect().bindValue(viewModel.selected(), viewModel::select);
 ```
 
-`bindItems` sets the items once and refreshes them on every change. Calling `grid.setItems(...)` again from an effect would replace the data provider, which always clears the selection, and the selection binding would pass that to the ViewModel as a `null` selection. The identifier provider keeps the row selected when a save replaces its record.
+`bindItems` sets the items once and refreshes them on every change. Calling `grid.setItems(...)` again from an effect would replace the data provider, which always clears the selection, and the selection binding would pass that to the ViewModel as a `null` selection ([vaadin/flow-components#10575](https://github.com/vaadin/flow-components/issues/10575)). The identifier provider keeps the row selected when a save replaces its record.
 
 Keep a selection as IDs, and derive the selected rows from the IDs and the current list. After a reload, the derived selection then holds the rows' latest data, and a row that is gone drops out of it without a command having to prune it. This matters most for a multi-select grid, whose commands act on every selected row:
 
@@ -255,7 +255,7 @@ bindError(title, viewModel.titleError());
 
 ### SignalBindings
 
-Vaadin has no bind methods yet for a grid's items or a field's error. Keep three small helpers in one class in the application, and import them statically in every view that has a ViewModel:
+Vaadin has no bind methods yet for a grid's items or a field's error ([vaadin/flow-components#10577](https://github.com/vaadin/flow-components/issues/10577), [vaadin/flow#26829](https://github.com/vaadin/flow/issues/26829)). Until it does, keep three small helpers in one class in the application, and import them statically in every view that has a ViewModel:
 
 | Helper | Binds |
 |---|---|
@@ -263,9 +263,9 @@ Vaadin has no bind methods yet for a grid's items or a field's error. Keep three
 | `bindItems(grid, query, fetch, count)` | Paged data to a grid, refreshed whenever `query` changes |
 | `bindError(field, error)` | A `Signal<String>` of error messages to a field |
 
-Each `bindItems` returns the grid's data view, like `setItems()` does. When a grid needs something the helpers don't do, write the effect yourself. If the project has no `SignalBindings` yet, copy it from [references/signal-bindings.md](references/signal-bindings.md). The item helpers are for grids only: other components treat refreshed items in their own ways, and a `Select` or a `ComboBox`, for example, clears its value.
+Each `bindItems` returns the grid's data view, like `setItems()` does. When a grid needs something the helpers don't do, write the effect yourself. If the project has no `SignalBindings` yet, copy it from [references/signal-bindings.md](references/signal-bindings.md). The item helpers are for grids only, because other components treat changed items in their own ways: a `Select` clears its value whenever its items change, and a `ComboBox` when `setItems()` replaces them.
 
-When a `ComboBox`'s or a `Select`'s options are a ViewModel signal that changes while its value is bound, as when the options are reloaded each time another record opens, the clearing reaches the write callback as `null`. Have the ViewModel empty the draft before it changes the options, and make the field commands do nothing while there is no draft. The clearing is then ignored, and setting the draft afterwards puts the value back:
+When those options are a ViewModel signal that changes while the value is bound, as when the options are reloaded each time another record opens, the clearing reaches the write callback as `null`. A `Select` clears its value even when the selected item is still among the new items, and it has no selection preservation mode yet ([vaadin/flow-components#10576](https://github.com/vaadin/flow-components/issues/10576)). Have the ViewModel empty the draft before it changes the options, and make the field commands do nothing while there is no draft. The clearing is then ignored, and setting the draft afterwards puts the value back:
 
 ```java
 private void show(Ticket ticket) {
@@ -411,10 +411,10 @@ Track these steps as TODOs.
 - A background answer is applied without checking that its request is still the latest.
 - `Signal.effect(grid, () -> grid.setItems(...))` on a grid whose selection is bound. Every reload clears the selection. Use `bindItems`.
 - A multi-select grid's selection mode is set after `bindItems`. Its select-all checkbox then goes stale when the rows change.
-- A `Select` or `ComboBox` whose value is bound gets its items refreshed while the draft is set. It clears its value, and the ViewModel receives `null`.
+- A `Select`'s items change, or a `ComboBox`'s items are replaced with `setItems()`, while its value is bound and the draft is set. It clears its value, and the ViewModel receives `null`.
 - A child component or a child ViewModel follows a parent's signal in an effect to load its own data. Make it a command the parent calls.
 - A ViewModel subscribes to the Model's events, or a child component subscribes on its own. The route view subscribes and calls ViewModel commands.
 - A ViewModel exposes a `DataProvider`, or keeps references to the views' data providers to refresh them.
-- A write callback rejects a value and expects the component to revert.
+- A grid's selection callback refuses a selection and expects the grid to go back to the old row. Fields go back to the signal's value; a grid's selection doesn't ([vaadin/flow-components#10575](https://github.com/vaadin/flow-components/issues/10575)). Keep the requested selection as state.
 - An effect is owned by a component that isn't attached, such as a closed dialog, so it never runs.
 - A ViewModel for a simple form that only forwards every call to a service.
