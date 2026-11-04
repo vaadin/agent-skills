@@ -38,7 +38,7 @@
       "Write browserless tests for the use cases of this Vaadin view."
     ],
     "brandColor": "#056FF0",
-    "composerIcon": "./assets/vaadin-symbol.svg",
-    "logo": "./assets/vaadin-logo-light.svg"
+    "composerIcon": "./assets/vaadin-icon.svg",
+    "logo": "./assets/vaadin-icon.svg"
   }
 }
