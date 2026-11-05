@@ -127,7 +127,7 @@ connected.
 | `aura-theme` | Generate and customize Vaadin Aura theme CSS configurations. |
 | `vaadin-frontend-design` | Create visually polished Vaadin interfaces beyond default theme styling. |
 | `vaadin-form-layout` | Create Vaadin Flow forms and entity editors from a Figma URL, screenshot, text, or prompt. |
-| `vaadin-mvvm` | Structure complex views with the MVVM pattern: a ViewModel with signal state, created by the `@Route` view, over application services. Includes when MVVM is overkill. |
+| `vaadin-mvvm` | Structure complex views with the MVVM pattern: a ViewModel with signal state, created by the `@Route` view, over application services. Decides when MVVM is overkill and whether to keep MVP, and follows Vaadin's MVVM guide through the MCP server. |
 | `vaadin-browserless-testing` | Write browserless tests that verify use cases without a browser, readable as the use case itself. |
 | `vaadin-usage-review` | Review Vaadin code for workarounds where an official Vaadin API or component exists, verified against the Vaadin MCP. Reports only; never edits. |
 
